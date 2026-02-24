@@ -64,16 +64,15 @@ class Atom():
     def on_drag(self, event):
         if not self.dragging:
             return
-        self.pos = Point(
-            self.pos.x + (event.x - self.last_mouse_pos.x),
-            self.pos.y + (event.y - self.last_mouse_pos.y)
-        )
-        self.canvas.moveto(
-            self.tag, self.pos.x, self.pos.y
-        )
+        self.move_to(self.pos + Point(event.x, event.y) - self.last_mouse_pos)
         self.last_mouse_pos = Point(event.x, event.y)
-        canvas.update()
     
+    def move_to(self, pos):
+        self.pos = pos
+        self.canvas.moveto(
+            self.tag, pos.x, pos.y
+        )
+        self.canvas.update_idletasks()
     
 root = tk.Tk(className="Crown Jewels Python")
 #root.title("Crown Jewels Python")
