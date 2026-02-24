@@ -3,8 +3,8 @@ from tkinter.font import Font as TkFont
 from random import randrange
 from typing import NamedTuple
 
-WINDOW_X = 640
-WINDOW_Y = 360
+WINDOW_X = 960
+WINDOW_Y = 540
 
 class Point(NamedTuple):
     x: int
