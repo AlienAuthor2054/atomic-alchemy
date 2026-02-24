@@ -101,6 +101,14 @@ class Atom():
         if self.dragging:
             return
         self.move_to(self.pos + self.vel * delta)
+        x1, y1, x2, y2 = self.canvas.bbox(self.tag)
+        if x1 > WINDOW_X or y1 > WINDOW_Y or x2 < 0 or y2 < 0:
+            self.remove()
+    
+    def remove(self):
+        self.game.atoms.remove(self)
+        self.canvas.delete(self.tag)
+        del self
 
 class Game():
     def __init__(self, root: tk.Tk) -> None:
@@ -120,7 +128,7 @@ class Game():
         self.root.after(8, lambda: self.loop())
     
     def tick(self, delta):
-        for atom in self.atoms:
+        for atom in self.atoms.copy():
             atom.physics_process(delta)
     
     def atom_spawn_loop(self):
