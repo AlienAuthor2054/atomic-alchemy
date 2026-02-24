@@ -10,6 +10,15 @@ class Point(NamedTuple):
     x: int
     y: int
 
+    def __add__(self, other):
+        return Point(self.x + other.x, self.y + other.y)
+    
+    def __sub__(self, other):
+        return Point(self.x - other.x, self.y - other.y)
+
+    def __mul__(self, other):
+        return Point(self.x * other, self.y * other)
+
 # TODO: Use Canvas objects instead of widgets
 class Atom():
     next_id = 1
