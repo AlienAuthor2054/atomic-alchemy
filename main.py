@@ -3,7 +3,9 @@ import tkinter as tk
 from tkinter.font import Font as TkFont
 from random import randrange
 from typing import NamedTuple
+from time import perf_counter
 from dataclasses import dataclass, astuple
+from random import randrange
 
 WINDOW_X = 960
 WINDOW_Y = 540
@@ -39,9 +41,11 @@ class Point():
 class Atom():
     next_id = 1
 
-    def __init__(self, canvas: tk.Canvas):
-        center = Point(randrange(0, WINDOW_X), randrange(0, WINDOW_Y))
+    def __init__(self, game: Game, canvas: tk.Canvas):
         radius = 36
+        pad = radius
+        center = Point(-pad, randrange(pad, WINDOW_Y - pad))
+        self.game = game
         self.canvas = canvas
         self.id = Atom.next_id
         Atom.next_id += 1
@@ -66,10 +70,12 @@ class Atom():
         self.dragging = False
         self.pos = Point(center.x - radius, center.y - radius)
         self.last_mouse_pos = Point(0, 0)
+        self.vel = Point(150, 0)
         canvas.tag_bind(self.tag, "<ButtonPress-1>", self.on_click)
         canvas.tag_bind(self.tag, "<ButtonRelease-1>", self.on_release)
         canvas.tag_bind(self.tag, "<B1-Motion>", self.on_drag)
-
+        game.atoms.add(self)
+    
     def on_click(self, event):
         self.dragging = True
         self.last_mouse_pos = Point(event.x, event.y)
@@ -89,18 +95,44 @@ class Atom():
             self.tag, pos.x, pos.y
         )
         self.canvas.update_idletasks()
+
+    def physics_process(self, delta):
+        if self.dragging:
+            return
+        self.move_to(self.pos + self.vel * delta)
+
+class Game():
+    def __init__(self, root: tk.Tk) -> None:
+        self.root = root
+        self.prev_time: float = 0.0
+        self.atoms: set[Atom] = set()
+
+    def loop(self):
+        delta = perf_counter() - self.prev_time
+        self.tick(delta)
+        self.prev_time = perf_counter()
+        self.root.after(8, lambda: self.loop())
     
-root = tk.Tk(className="Crown Jewels Python")
-#root.title("Crown Jewels Python")
-root.geometry(f"{WINDOW_X}x{WINDOW_Y}")
-root.resizable(width=False, height=False)
+    def tick(self, delta):
+        for atom in self.atoms:
+            atom.physics_process(delta)
 
-DEFAULT_FONT = TkFont(size=50)
+def main():
+    root = tk.Tk(className="Crown Jewels Python")
+    #root.title("Crown Jewels Python")
+    root.geometry(f"{WINDOW_X}x{WINDOW_Y}")
+    root.resizable(width=False, height=False)
+    game = Game(root)
 
-canvas = tk.Canvas(root, width=WINDOW_X, height=WINDOW_Y)
-canvas.pack()
+    DEFAULT_FONT = TkFont(size=50)
 
-button = tk.Button(root, text="Spawn Atom", command=lambda: Atom(canvas), font=DEFAULT_FONT)
-button.place(x=100, y=50)
+    canvas = tk.Canvas(root, width=WINDOW_X, height=WINDOW_Y)
+    canvas.pack()
 
-root.mainloop()
+    button = tk.Button(root, text="Spawn Atom", command=lambda: Atom(game, canvas), font=DEFAULT_FONT)
+    button.place(x=100, y=50)
+
+    root.after(0, game.loop)
+    root.mainloop()
+    
+main()
