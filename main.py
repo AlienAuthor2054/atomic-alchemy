@@ -97,7 +97,7 @@ class Atom(Draggable):
         pad = radius
         center = Point(-pad, randrange(pad, WINDOW_Y - pad))
         pos = Point(center.x - radius, center.y - radius)
-        vel = Point(150, 0)
+        vel = Point(randrange(75, 200), 0)
         super().__init__(game, tag, pos, vel)
         self.canvas.create_rectangle(
             center.x - radius, center.y - radius,
