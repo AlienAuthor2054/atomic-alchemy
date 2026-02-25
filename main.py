@@ -6,6 +6,7 @@ from typing import NamedTuple
 from time import perf_counter
 from dataclasses import dataclass, astuple
 from random import randrange
+from abc import ABC
 
 WINDOW_X = 960
 WINDOW_Y = 540
@@ -37,43 +38,20 @@ class Point():
     def unit(self, mul: float = 1.0):
         return self / len(self) * mul
 
-class Atom():
-    next_id = 1
-
-    def __init__(self, game: Game):
-        canvas = game.atom_canvas
-        self.canvas = canvas
-        radius = 36
-        pad = radius
-        center = Point(-pad, randrange(pad, WINDOW_Y - pad))
+class Draggable(ABC):
+    def __init__(self, game: Game, tag: str, pos: Point, vel: Point = Point(0, 0)):
         self.game = game
-        self.id = Atom.next_id
-        Atom.next_id += 1
-        self.tag = "atom" + str(self.id)
-        canvas.create_rectangle(
-            center.x - radius, center.y - radius,
-            center.x + radius, center.y + radius,
-            fill="black",
-            tags=self.tag,
-        )
-        label_font = TkFont(size=radius)
-        canvas.create_text(
-            center.x,
-            center.y,
-            text="H",
-            font=label_font,
-            fill="gray",
-            tags=self.tag,
-            state=tk.DISABLED,
-        )
+        canvas = game.canvas
+        self.canvas = canvas
+        self.tag = tag
         self.dragging = False
-        self.pos = Point(center.x - radius, center.y - radius)
+        self.pos = pos
+        self.vel = vel
         self.last_mouse_pos = Point(0, 0)
-        self.vel = Point(150, 0)
-        canvas.tag_bind(self.tag, "<ButtonPress-1>", self.on_click)
-        canvas.tag_bind(self.tag, "<ButtonRelease-1>", self.on_release)
-        canvas.tag_bind(self.tag, "<B1-Motion>", self.on_drag)
-        game.atoms.add(self)
+        canvas.tag_bind(tag, "<ButtonPress-1>", self.on_click)
+        canvas.tag_bind(tag, "<ButtonRelease-1>", self.on_release)
+        canvas.tag_bind(tag, "<B1-Motion>", self.on_drag)
+        game.physics_objects.add(self)
     
     def on_click(self, event):
         self.dragging = True
@@ -104,16 +82,46 @@ class Atom():
             self.remove()
     
     def remove(self):
-        self.game.atoms.remove(self)
+        self.game.physics_objects.remove(self)
         self.canvas.delete(self.tag)
         del self
+
+class Atom(Draggable):
+    next_id = 1
+
+    def __init__(self, game: Game):
+        self.id = Atom.next_id
+        Atom.next_id += 1
+        tag = "atom" + str(self.id)
+        radius = 36
+        pad = radius
+        center = Point(-pad, randrange(pad, WINDOW_Y - pad))
+        pos = Point(center.x - radius, center.y - radius)
+        vel = Point(150, 0)
+        super().__init__(game, tag, pos, vel)
+        self.canvas.create_rectangle(
+            center.x - radius, center.y - radius,
+            center.x + radius, center.y + radius,
+            fill="black",
+            tags=tag,
+        )
+        label_font = TkFont(size=radius)
+        self.canvas.create_text(
+            center.x,
+            center.y,
+            text="H",
+            font=label_font,
+            fill="gray",
+            tags=tag,
+            state=tk.DISABLED,
+        )
 
 class Game():
     def __init__(self, root: tk.Tk) -> None:
         self.root = root
         self.prev_time: float = 0.0
-        self.atoms: set[Atom] = set()
-        self.atom_canvas: tk.Canvas
+        self.physics_objects = set()
+        self.canvas: tk.Canvas
 
     def start(self):
         self.atom_spawn_loop()
@@ -126,8 +134,8 @@ class Game():
         self.root.after(8, lambda: self.loop())
     
     def tick(self, delta):
-        for atom in self.atoms.copy():
-            atom.physics_process(delta)
+        for obj in self.physics_objects.copy():
+            obj.physics_process(delta)
     
     def atom_spawn_loop(self):
         Atom(self)
@@ -144,7 +152,7 @@ def main():
 
     canvas = tk.Canvas(root, width=WINDOW_X, height=WINDOW_Y)
     canvas.pack()
-    game.atom_canvas = canvas
+    game.canvas = canvas
 
     button = tk.Button(root, text="Spawn Atom", command=lambda: Atom(game), font=DEFAULT_FONT)
     button.place(x=0, y=0)
