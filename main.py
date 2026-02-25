@@ -121,7 +121,9 @@ class Game():
         self.root = root
         self.prev_time: float = 0.0
         self.physics_objects = set()
-        self.canvas: tk.Canvas
+        canvas = tk.Canvas(root, width=WINDOW_X, height=WINDOW_Y)
+        canvas.pack()
+        self.canvas = canvas
 
     def start(self):
         self.atom_spawn_loop()
@@ -149,10 +151,6 @@ def main():
     game = Game(root)
 
     DEFAULT_FONT = TkFont(size=20)
-
-    canvas = tk.Canvas(root, width=WINDOW_X, height=WINDOW_Y)
-    canvas.pack()
-    game.canvas = canvas
 
     button = tk.Button(root, text="Spawn Atom", command=lambda: Atom(game), font=DEFAULT_FONT)
     button.place(x=0, y=0)
