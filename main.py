@@ -39,14 +39,16 @@ class Point():
         return self / len(self) * mul
 
 class Draggable(ABC):
-    def __init__(self, game: Game, tag: str, pos: Point, vel: Point = Point(0, 0)):
+    def __init__(self, game: Game, tag: str, pos: Point, vel: Point = Point(0, 0), limit_to_window: bool = False):
         self.game = game
         canvas = game.canvas
         self.canvas = canvas
         self.tag = tag
         self.dragging = False
         self.pos = pos
+        self.drag_pos = pos
         self.vel = vel
+        self.limit_to_window = limit_to_window
         self.last_mouse_pos = Point(0, 0)
         canvas.tag_bind(tag, "<ButtonPress-1>", self.on_click)
         canvas.tag_bind(tag, "<ButtonRelease-1>", self.on_release)
@@ -55,6 +57,7 @@ class Draggable(ABC):
     
     def on_click(self, event):
         self.dragging = True
+        self.drag_pos = self.pos
         self.last_mouse_pos = Point(event.x, event.y)
     
     def on_release(self, event):
@@ -63,8 +66,12 @@ class Draggable(ABC):
     def on_drag(self, event):
         if not self.dragging:
             return
-        self.move_to(self.pos + Point(event.x, event.y) - self.last_mouse_pos)
-        self.last_mouse_pos = Point(event.x, event.y)
+        mouse_pos = Point(event.x, event.y)
+        offset = mouse_pos - self.last_mouse_pos
+        self.drag_pos += offset
+        self.last_mouse_pos = mouse_pos
+        if not self.limit_to_window or self.is_in_window(self.drag_pos - self.pos):
+            self.move_to(self.drag_pos)
     
     def move_to(self, pos):
         self.pos = pos
@@ -72,6 +79,14 @@ class Draggable(ABC):
             self.tag, pos.x, pos.y
         )
         self.canvas.update_idletasks()
+
+    def is_in_window(self, offset: Point = Point(0, 0)):
+        x1, y1, x2, y2 = self.canvas.bbox(self.tag)
+        x1 += offset.x
+        x2 += offset.x
+        y1 += offset.y
+        y2 += offset.y
+        return x1 > 0 and y1 > 0 and x2 < WINDOW_X and y2 < WINDOW_Y
 
     def physics_process(self, delta):
         if self.dragging:
