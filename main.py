@@ -37,7 +37,6 @@ class Point():
     def unit(self, mul: float = 1.0):
         return self / len(self) * mul
 
-# TODO: Use Canvas objects instead of widgets
 class Atom():
     next_id = 1
 
@@ -67,7 +66,6 @@ class Atom():
             tags=self.tag,
             state=tk.DISABLED,
         )
-        #super().__init__(root, width=2, height=1, text="H", font=label_font, bg="white", fg="gray")
         self.dragging = False
         self.pos = Point(center.x - radius, center.y - radius)
         self.last_mouse_pos = Point(0, 0)
@@ -136,8 +134,8 @@ class Game():
         self.root.after(2000, lambda: self.atom_spawn_loop())
 
 def main():
-    root = tk.Tk(className="Crown Jewels Python")
-    #root.title("Crown Jewels Python")
+    root = tk.Tk()
+    root.title("Atomic Alchemy")
     root.geometry(f"{WINDOW_X}x{WINDOW_Y}")
     root.resizable(width=False, height=False)
     game = Game(root)
