@@ -8,6 +8,7 @@ from dataclasses import dataclass, astuple
 from random import randrange
 from abc import ABC
 import math
+from collections import deque
 
 WINDOW_X = 960
 WINDOW_Y = 540
@@ -107,7 +108,7 @@ class Draggable(ABC):
         if x1 > WINDOW_X or y1 > WINDOW_Y or x2 < 0 or y2 < 0:
             self.remove()
     
-    def remove(self):
+    def remove(self) -> None:
         self.game.physics_objects.remove(self)
         self.canvas.delete(self.tag)
         del self
@@ -115,7 +116,7 @@ class Draggable(ABC):
 class Atom(Draggable):
     next_id = 1
 
-    def __init__(self, game: Game):
+    def __init__(self, game: Game, valency: int):
         self.id = Atom.next_id
         Atom.next_id += 1
         tag = "atom" + str(self.id)
@@ -125,6 +126,9 @@ class Atom(Draggable):
         pos = Point(center.x - radius, center.y - radius)
         vel = Point(randrange(75, 200), 0)
         super().__init__(game, tag, pos, vel)
+        self.molecule = Molecule({self,})
+        self.bonds: dict[Atom, int] = {}
+        self.valency = valency
         self.in_lab = False
         self.canvas.create_rectangle(
             center.x - radius, center.y - radius,
@@ -167,7 +171,100 @@ class Atom(Draggable):
                 self.canvas.dtag(self.tag, "lab_obj")
                 self.vel = Point(100, 0)
             self.canvas.tag_lower(self.tag, "lab")
+    
+    @property
+    def bonds_formed(self):
+        return sum(self.bonds.values())
+    
+    @property
+    def bonds_left(self):
+        return self.valency - self.bonds_formed
 
+    def is_indirectly_bonded(self, other: Atom) -> bool:
+        """
+        When other is directly bonded to self, result is equivalent to:
+        'Does breaking this bond keep the molecule intact?'
+        """
+        traversed: set[Atom] = {self,}
+        queue = deque([self])
+        while len(queue) > 0:
+            atom = queue.popleft()
+            for bonded in atom.bonds:
+                if bonded == other:
+                    # Ignore direct bond to other
+                    if not (atom == self and bonded == other):
+                        return True
+                if bonded in traversed:
+                    continue
+                traversed.add(bonded)
+                queue.append(self)
+        return False
+    
+    def add_bond(self, other: Atom, bond_order: int = 1):
+        if other in self.bonds:
+            new_order = self.bonds[other] + bond_order
+        else:
+            new_order = bond_order
+        if new_order > self.bonds_left or new_order > other.bonds_left:
+            raise ValueError("New bond order exceeds valency of atom(s).")
+        self.bonds[other] = new_order
+        other.bonds[self] = new_order
+
+    def remove_bond(self, other: Atom, bond_order: int = 1):
+        if other not in self.bonds:
+            raise ValueError("No bond to remove between these atoms.")
+        new_order = self.bonds[other] - bond_order
+        if new_order < 0:
+            raise ValueError("Bond order to remove is more than existing bond order.")
+        if new_order > 0:
+            self.bonds[other] = new_order
+            other.bonds[self] = new_order
+        else:
+            del self.bonds[other]
+            del other.bonds[self]
+    
+    def remove(self) -> None:
+        for other in self.bonds:
+            self.remove_bond(other, self.bonds[other])
+        self.game.lab.contents.discard(self)
+        super().remove()
+
+class Molecule():
+    def __init__(self, atoms: set[Atom]) -> None:
+        self.atoms = atoms
+    
+    @staticmethod
+    def constuct_graph(origin: Atom) -> set[Atom]:
+        traversed: set[Atom] = {origin,}
+        queue = deque([origin])
+        while len(queue) > 0:
+            atom = queue.popleft()
+            for other in atom.bonds:
+                if other in traversed:
+                    continue
+                traversed.add(other)
+                queue.append(other)
+        return traversed
+    
+    def merge(self, merger: Atom, merged: Atom):
+        if merged.molecule == self or merger.is_indirectly_bonded(merged):
+            return
+        other_mol = merged.molecule
+        for atom in other_mol.atoms:
+            atom.molecule = self
+        self.atoms.update(other_mol.atoms)
+        del other_mol
+    
+    def split(self, splitter: Atom, split: Atom):
+        if split.molecule != self or not splitter.is_indirectly_bonded(split):
+            return
+        staying_atoms = Molecule.constuct_graph(splitter)
+        leaving_atoms = self.atoms - staying_atoms
+        self.atoms = staying_atoms
+        new_mol = Molecule(leaving_atoms)
+        for atom in leaving_atoms:
+            atom.molecule = new_mol
+            
 class Lab(Draggable):
     def __init__(self, game: Game):
         tag = "lab"
@@ -213,7 +310,7 @@ class Game():
             obj.physics_process(delta)
     
     def atom_spawn_loop(self):
-        Atom(self)
+        Atom(self, 1)
         self.root.after(2000, lambda: self.atom_spawn_loop())
 
 def main():
@@ -225,7 +322,7 @@ def main():
 
     DEFAULT_FONT = TkFont(size=20)
 
-    button = tk.Button(root, text="Spawn Atom", command=lambda: Atom(game), font=DEFAULT_FONT)
+    button = tk.Button(root, text="Spawn Atom", command=lambda: Atom(game, 1), font=DEFAULT_FONT)
     button.place(x=0, y=0)
 
     game.start()
