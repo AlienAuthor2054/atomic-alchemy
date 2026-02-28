@@ -1,0 +1,2 @@
+WINDOW_X = 960
+WINDOW_Y = 540
