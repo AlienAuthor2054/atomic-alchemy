@@ -3,12 +3,16 @@ from __future__ import annotations
 from collections import deque
 from typing import TYPE_CHECKING
 
+from util.point import Point
+
 if TYPE_CHECKING:
     from .atom import Atom
 
 class Molecule():
     def __init__(self, atoms: set[Atom]) -> None:
         self.atoms = atoms
+        self.dragging = False
+        self.in_lab = False
     
     @staticmethod
     def constuct_graph(origin: Atom) -> set[Atom]:
@@ -43,6 +47,7 @@ class Molecule():
             atom.molecule = new_mol
     
     def drag(self, offset: Point):
+        self.dragging = True
         for atom in self.atoms:
             atom.on_mol_drag(offset)
 

@@ -32,7 +32,6 @@ class Atom(Draggable):
         self.molecule = Molecule({self,})
         self.bonds: dict[Atom, Bond] = {}
         self.valency = element.valency
-        self.in_lab = False
         item_id = self.canvas.create_rectangle(
             center.x - radius, center.y - radius,
             center.x + radius, center.y + radius,
@@ -52,8 +51,14 @@ class Atom(Draggable):
         self.canvas.tag_lower(tag, "lab")
         self.game.register_atom(self, item_id)
     
+    def physics_process(self, delta):
+        if self.molecule.in_lab or self.molecule.dragging:
+            return
+        super().physics_process(delta)
+
     def on_click(self, event):
         super().on_click(event)
+        self.molecule.dragging = True
         self.canvas.tag_raise(self.tag)
     
     def attempt_bond(self):
@@ -66,7 +71,7 @@ class Atom(Draggable):
                 x2 + bbox_expand, y2 + bbox_expand,
                 self
             )
-            if atom.in_lab and atom not in self.bonds
+            if atom.molecule.in_lab and atom not in self.bonds
         ]
         if len(near_atoms) == 0:
             return
@@ -76,33 +81,45 @@ class Atom(Draggable):
         except ValueError:
             pass
     
-    def on_release_in_lab(self):
-        if not self.in_lab:
-            self.in_lab = True
+    def drag(self, offset: Point):
+        self.molecule.drag(offset)
+
+    def on_mol_drag(self, offset: Point):
+        self.move(offset)
+
+    def on_mol_release_in_lab(self, was_outside_lab: bool):
+        if was_outside_lab:
             self.game.lab.contents.add(self)
             self.game.physics_objects.remove(self)
             self.canvas.addtag_withtag("lab_obj", self.tag)
             self.vel = Point(0, 0)
         self.canvas.tag_raise(self.tag, "lab")
         self.attempt_bond()
+        self.on_mol_release()
+    
+    def on_mol_release_outside_lab(self, was_inside_lab: bool):
+        if was_inside_lab:
+            self.game.lab.contents.remove(self)
+            self.game.physics_objects.add(self)
+            self.canvas.dtag(self.tag, "lab_obj")
+            self.vel = Point(100, 0)
+        self.canvas.tag_lower(self.tag, "lab")
+        self.on_mol_release()
 
-    def on_release(self, event):
-        super().on_release(event)
-        x1, y1, x2, y2 = self.canvas.bbox("lab")
-        if x1 < event.x < x2 and y1 < event.y < y2:
-            self.on_release_in_lab()
-        else:
-            if self.in_lab:
-                self.in_lab = False
-                self.game.lab.contents.remove(self)
-                self.game.physics_objects.add(self)
-                self.canvas.dtag(self.tag, "lab_obj")
-                self.vel = Point(100, 0)
-            self.canvas.tag_lower(self.tag, "lab")
+    def on_mol_release(self):
         for bond in self.bonds.values():
             bond.update_layering()
         if len(self.canvas.find_withtag("bond")) > 0:
             self.canvas.tag_raise(self.tag, "bond")
+    
+    def on_release(self, event):
+        super().on_release(event)
+        self.molecule.dragging = False
+        x1, y1, x2, y2 = self.canvas.bbox("lab")
+        if x1 < event.x < x2 and y1 < event.y < y2:
+            self.molecule.on_release_in_lab()
+        else:
+            self.molecule.on_release_outside_lab()
 
     def on_exit_window(self) -> None:
         self.molecule.on_atom_exit_window()
@@ -161,6 +178,7 @@ class Atom(Draggable):
             bond = Bond(self, other, new_order)
             self.bonds[other] = bond
             other.bonds[self] = bond
+            self.molecule.merge(self, other)
 
     def remove_bond(self, other: Atom, bond_order: int = 1):
         if other not in self.bonds:
@@ -174,6 +192,7 @@ class Atom(Draggable):
             self.bonds[other].remove()
             del self.bonds[other]
             del other.bonds[self]
+            self.molecule.split(self, other)
     
     def remove(self) -> None:
         for other in self.bonds.copy():

@@ -21,6 +21,7 @@ class Draggable(ABC):
         self.drag_pos = pos
         self.vel = vel
         self.limit_to_window = limit_to_window
+        self.outside_window = False
         self.last_mouse_pos = Point(0, 0)
         canvas.tag_bind(tag, "<ButtonPress-1>", self.on_click)
         canvas.tag_bind(tag, "<ButtonRelease-1>", self.on_release)
@@ -44,11 +45,17 @@ class Draggable(ABC):
         self.last_mouse_pos = mouse_pos
         offset = self.drag_pos - self.pos
         if not self.limit_to_window or self.is_on_window(offset, 50):
-            self.move_to(self.drag_pos)
+            self.drag(offset)
             return offset
         else:
             return Point(0, 0)
     
+    def drag(self, offset: Point):
+        """
+        Allows overriding dragging behavior while still encapsulating offset calculation.
+        """
+        self.move(offset)
+
     def move_to(self, pos):
         self.pos = pos
         self.canvas.moveto(
@@ -73,8 +80,16 @@ class Draggable(ABC):
         self.move_to(self.pos + self.vel * delta)
         x1, y1, x2, y2 = self.canvas.bbox(self.tag)
         if x1 > WINDOW_X or y1 > WINDOW_Y or x2 < 0 or y2 < 0:
-            self.remove()
+            was_inside_window = not self.outside_window
+            self.outside_window = True
+            if was_inside_window:
+                self.on_exit_window()
+        else:
+            self.outside_window = False
     
+    def on_exit_window(self) -> None:
+        self.remove()
+
     def remove(self) -> None:
         self.game.physics_objects.remove(self)
         self.canvas.delete(self.tag)
