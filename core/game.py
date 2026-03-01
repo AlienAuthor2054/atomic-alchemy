@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import tkinter as tk
 from time import perf_counter
+from random import choices
 
-from constants import WINDOW_X, WINDOW_Y
+from constants import WINDOW_X, WINDOW_Y, ATOM_SPAWN_WEIGHTS
+from core.element import ELEMENTS_BY_NUM
 
 from .atom import Atom
 from .lab import Lab
@@ -32,6 +34,13 @@ class Game():
         for obj in self.physics_objects.copy():
             obj.physics_process(delta)
     
+    def spawn_atom(self):
+        Atom(self, ELEMENTS_BY_NUM[choices(
+            list(ATOM_SPAWN_WEIGHTS.keys()),
+            list(ATOM_SPAWN_WEIGHTS.values()),
+            k=1
+        )[0]])
+
     def atom_spawn_loop(self):
-        Atom(self, 1)
+        self.spawn_atom()
         self.root.after(2000, lambda: self.atom_spawn_loop())

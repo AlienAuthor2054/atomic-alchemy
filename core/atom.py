@@ -12,12 +12,13 @@ from constants import WINDOW_Y
 from .draggable import Draggable
 from .molecule import Molecule
 if TYPE_CHECKING:
+    from .element import Element
     from .game import Game
 
 class Atom(Draggable):
     next_id = 1
 
-    def __init__(self, game: Game, valency: int):
+    def __init__(self, game: Game, element: Element):
         self.id = Atom.next_id
         Atom.next_id += 1
         tag = "atom" + str(self.id)
@@ -30,21 +31,21 @@ class Atom(Draggable):
         super().__init__(game, tag, pos, vel)
         self.molecule = Molecule({self,})
         self.bonds: dict[Atom, Bond] = {}
-        self.valency = valency
+        self.valency = element.valency
         self.in_lab = False
         self.canvas.create_rectangle(
             center.x - radius, center.y - radius,
             center.x + radius, center.y + radius,
-            fill="black",
+            fill=element.color,
             tags=(tag, "atom"),
         )
         label_font = TkFont(size=radius)
         self.canvas.create_text(
             center.x,
             center.y,
-            text="H",
+            text=element.symbol,
             font=label_font,
-            fill="gray",
+            fill=element.text_color,
             tags=(tag, "atom"),
             state=tk.DISABLED,
         )

@@ -3,7 +3,7 @@ import tkinter as tk
 from tkinter.font import Font as TkFont
 
 from constants import WINDOW_X, WINDOW_Y
-from core import Atom, Game
+from core import Game
 
 def main():
     root = tk.Tk()
@@ -14,7 +14,7 @@ def main():
 
     DEFAULT_FONT = TkFont(size=20)
 
-    button = tk.Button(root, text="Spawn Atom", command=lambda: Atom(game, 1), font=DEFAULT_FONT)
+    button = tk.Button(root, text="Spawn Atom", command=game.spawn_atom, font=DEFAULT_FONT)
     button.place(x=0, y=0)
 
     game.start()
