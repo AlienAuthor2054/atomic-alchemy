@@ -22,13 +22,14 @@ class Atom(Draggable):
         Atom.next_id += 1
         tag = "atom" + str(self.id)
         radius = 30
+        self.radius = radius
         pad = radius
         center = Point(-pad, randrange(pad, WINDOW_Y - pad))
         pos = Point(center.x - radius, center.y - radius)
         vel = Point(randrange(75, 200), 0)
         super().__init__(game, tag, pos, vel)
         self.molecule = Molecule({self,})
-        self.bonds: dict[Atom, int] = {}
+        self.bonds: dict[Atom, Bond] = {}
         self.valency = valency
         self.in_lab = False
         self.canvas.create_rectangle(
@@ -72,10 +73,23 @@ class Atom(Draggable):
                 self.canvas.dtag(self.tag, "lab_obj")
                 self.vel = Point(100, 0)
             self.canvas.tag_lower(self.tag, "lab")
-    
+
+    def move_to(self, pos) -> None:
+        super().move_to(pos)
+        for bond in self.bonds.values():
+            bond.update_display()
+
+    @property
+    def center(self) -> Point:
+        return Point(self.pos.x + self.radius, self.pos.y + self.radius)
+
+    @property
+    def bond_orders(self) -> dict[Atom, int]:
+        return {atom: bond.order for atom, bond in self.bonds.items()}
+
     @property
     def bonds_formed(self):
-        return sum(self.bonds.values())
+        return sum(self.bond_orders.values())
     
     @property
     def bonds_left(self):
@@ -103,29 +117,64 @@ class Atom(Draggable):
     
     def add_bond(self, other: Atom, bond_order: int = 1):
         if other in self.bonds:
-            new_order = self.bonds[other] + bond_order
+            new_order = self.bonds[other].order + bond_order
         else:
             new_order = bond_order
         if new_order > self.bonds_left or new_order > other.bonds_left:
             raise ValueError("New bond order exceeds valency of atom(s).")
-        self.bonds[other] = new_order
-        other.bonds[self] = new_order
+        if other in self.bonds:
+            self.bonds[other].order = new_order
+        else:
+            bond = Bond(self, other, new_order)
+            self.bonds[other] = bond
+            other.bonds[self] = bond
 
     def remove_bond(self, other: Atom, bond_order: int = 1):
         if other not in self.bonds:
             raise ValueError("No bond to remove between these atoms.")
-        new_order = self.bonds[other] - bond_order
+        new_order = self.bonds[other].order - bond_order
         if new_order < 0:
             raise ValueError("Bond order to remove is more than existing bond order.")
         if new_order > 0:
-            self.bonds[other] = new_order
-            other.bonds[self] = new_order
+            self.bonds[other].order = new_order
         else:
+            self.bonds[other].remove()
             del self.bonds[other]
             del other.bonds[self]
     
     def remove(self) -> None:
         for other in self.bonds:
-            self.remove_bond(other, self.bonds[other])
+            self.remove_bond(other, self.bonds[other].order)
         self.game.lab.contents.discard(self)
         super().remove()
+
+class Bond():
+    next_id = 1
+
+    def __init__(self, atom1: Atom, atom2: Atom, bond_order: int) -> None:
+        self.id = Bond.next_id
+        Bond.next_id += 1
+        self.tag = "bond" + str(self.id)
+        self.canvas = atom1.canvas
+        self.atom1 = atom1
+        self.atom2 = atom2
+        self.order = bond_order
+        self.canvas.create_line(
+            *atom1.center, *atom2.center, 
+            fill="black",
+            width=10,
+            tags=(self.tag, "bond"),
+        )
+        self.update_layering()
+    
+    def update_layering(self) -> None:
+        self.canvas.tag_lower(self.tag, "atom")
+        self.canvas.tag_raise(self.tag, "lab")
+
+    def update_display(self) -> None:
+        self.canvas.coords(self.tag, *self.atom1.center, *self.atom2.center)
+        self.update_layering()
+    
+    def remove(self) -> None:
+        self.canvas.delete(self.tag)
+        del self
