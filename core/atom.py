@@ -104,6 +104,9 @@ class Atom(Draggable):
         if len(self.canvas.find_withtag("bond")) > 0:
             self.canvas.tag_raise(self.tag, "bond")
 
+    def on_exit_window(self) -> None:
+        self.molecule.on_atom_exit_window()
+
     def move_to(self, pos) -> None:
         super().move_to(pos)
         for bond in self.bonds.values():
@@ -173,7 +176,7 @@ class Atom(Draggable):
             del other.bonds[self]
     
     def remove(self) -> None:
-        for other in self.bonds:
+        for other in self.bonds.copy():
             self.remove_bond(other, self.bonds[other].order)
         self.game.lab.contents.discard(self)
         self.game.deregister_atom(self)

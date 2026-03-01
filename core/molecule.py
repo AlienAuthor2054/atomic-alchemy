@@ -41,6 +41,29 @@ class Molecule():
         new_mol = Molecule(leaving_atoms)
         for atom in leaving_atoms:
             atom.molecule = new_mol
+    
+    def drag(self, offset: Point):
+        for atom in self.atoms:
+            atom.on_mol_drag(offset)
+
+    def on_release_in_lab(self):
+        was_outside_lab = not self.in_lab
+        self.in_lab = True
+        for atom in self.atoms.copy():
+            atom.on_mol_release_in_lab(was_outside_lab)
+    
+    def on_release_outside_lab(self):
+        was_inside_lab = self.in_lab
+        self.in_lab = False
+        for atom in self.atoms:
+            atom.on_mol_release_outside_lab(was_inside_lab)
+        
+    def on_atom_exit_window(self):
+        for atom in self.atoms:
+            if not atom.outside_window:
+                return
+        for atom in self.atoms.copy():
+            atom.remove()
 
     def remove_atom(self, atom: Atom):
         self.atoms.remove(atom)
