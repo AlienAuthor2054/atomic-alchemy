@@ -41,3 +41,8 @@ class Molecule():
         new_mol = Molecule(leaving_atoms)
         for atom in leaving_atoms:
             atom.molecule = new_mol
+
+    def remove_atom(self, atom: Atom):
+        self.atoms.remove(atom)
+        if len(self.atoms) == 0:
+            del self

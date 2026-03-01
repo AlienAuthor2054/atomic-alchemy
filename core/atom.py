@@ -177,6 +177,7 @@ class Atom(Draggable):
             self.remove_bond(other, self.bonds[other].order)
         self.game.lab.contents.discard(self)
         self.game.deregister_atom(self)
+        self.molecule.remove_atom(self)
         super().remove()
 
 class Bond():
