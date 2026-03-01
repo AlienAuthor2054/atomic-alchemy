@@ -33,7 +33,7 @@ class Atom(Draggable):
         self.bonds: dict[Atom, Bond] = {}
         self.valency = element.valency
         self.in_lab = False
-        self.canvas.create_rectangle(
+        item_id = self.canvas.create_rectangle(
             center.x - radius, center.y - radius,
             center.x + radius, center.y + radius,
             fill=element.color,
@@ -50,22 +50,47 @@ class Atom(Draggable):
             state=tk.DISABLED,
         )
         self.canvas.tag_lower(tag, "lab")
+        self.game.register_atom(self, item_id)
     
     def on_click(self, event):
         super().on_click(event)
         self.canvas.tag_raise(self.tag)
     
+    def attempt_bond(self):
+        x1, y1, x2, y2 = self.canvas.bbox(self.tag)
+        bbox_expand = 50
+        near_atoms = [
+            atom
+            for atom in self.game.find_overlapping_atoms(   
+                x1 - bbox_expand, y1 - bbox_expand,
+                x2 + bbox_expand, y2 + bbox_expand,
+                self
+            )
+            if atom.in_lab and atom not in self.bonds
+        ]
+        if len(near_atoms) == 0:
+            return
+        other = near_atoms[0]
+        try:
+            self.add_bond(other, 1)
+        except ValueError:
+            pass
+    
+    def on_release_in_lab(self):
+        if not self.in_lab:
+            self.in_lab = True
+            self.game.lab.contents.add(self)
+            self.game.physics_objects.remove(self)
+            self.canvas.addtag_withtag("lab_obj", self.tag)
+            self.vel = Point(0, 0)
+        self.canvas.tag_raise(self.tag, "lab")
+        self.attempt_bond()
+
     def on_release(self, event):
         super().on_release(event)
         x1, y1, x2, y2 = self.canvas.bbox("lab")
         if x1 < event.x < x2 and y1 < event.y < y2:
-            if not self.in_lab:
-                self.in_lab = True
-                self.game.lab.contents.add(self)
-                self.game.physics_objects.remove(self)
-                self.canvas.addtag_withtag("lab_obj", self.tag)
-                self.vel = Point(0, 0)
-            self.canvas.tag_raise(self.tag, "lab")
+            self.on_release_in_lab()
         else:
             if self.in_lab:
                 self.in_lab = False
@@ -74,6 +99,10 @@ class Atom(Draggable):
                 self.canvas.dtag(self.tag, "lab_obj")
                 self.vel = Point(100, 0)
             self.canvas.tag_lower(self.tag, "lab")
+        for bond in self.bonds.values():
+            bond.update_layering()
+        if len(self.canvas.find_withtag("bond")) > 0:
+            self.canvas.tag_raise(self.tag, "bond")
 
     def move_to(self, pos) -> None:
         super().move_to(pos)
@@ -147,6 +176,7 @@ class Atom(Draggable):
         for other in self.bonds:
             self.remove_bond(other, self.bonds[other].order)
         self.game.lab.contents.discard(self)
+        self.game.deregister_atom(self)
         super().remove()
 
 class Bond():

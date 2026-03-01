@@ -15,6 +15,7 @@ class Game():
         self.root = root
         self.prev_time: float = 0.0
         self.physics_objects = set()
+        self._atoms_by_item_id: dict[int, Atom] = {} # For atom collision detection
         canvas = tk.Canvas(root, width=WINDOW_X, height=WINDOW_Y)
         canvas.pack()
         self.canvas = canvas
@@ -44,3 +45,20 @@ class Game():
     def atom_spawn_loop(self):
         self.spawn_atom()
         self.root.after(2000, lambda: self.atom_spawn_loop())
+    
+    def register_atom(self, atom: Atom, item_id: int):
+        self._atoms_by_item_id[item_id] = atom
+    
+    def deregister_atom(self, atom: Atom):
+        item_id = {atom: item_id for item_id, atom in self._atoms_by_item_id.items()}[atom]
+        del self._atoms_by_item_id[item_id]
+    
+    def find_overlapping_atoms(self,
+        x1: float, x2: float, y1: float, y2: float, exclude: Atom | None = None
+    ) -> list[Atom]:
+        item_ids = self.canvas.find_overlapping(x1, x2, y1, y2)
+        return [
+            self._atoms_by_item_id[id]
+            for id in item_ids
+            if id in self._atoms_by_item_id and self._atoms_by_item_id[id] != exclude
+        ]
