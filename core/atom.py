@@ -91,7 +91,7 @@ class Atom(Draggable):
             self.center = other.center + offset
     
     def drag(self, offset: Point):
-        self.molecule.drag(offset)
+        self.molecule.move(offset)
 
     def on_mol_drag(self, offset: Point):
         self.move(offset)

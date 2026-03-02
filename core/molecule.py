@@ -46,10 +46,9 @@ class Molecule():
         for atom in leaving_atoms:
             atom.molecule = new_mol
     
-    def drag(self, offset: Point):
-        self.dragging = True
+    def move(self, offset: Point):
         for atom in self.atoms:
-            atom.on_mol_drag(offset)
+            atom.move(offset)
 
     def on_release_in_lab(self):
         was_outside_lab = not self.in_lab
