@@ -16,6 +16,7 @@ if TYPE_CHECKING:
     from .game import Game
 
 class Atom(Draggable):
+    MAX_BONDING_DIST = 100
     next_id = 1
 
     def __init__(self, game: Game, element: Element):
@@ -32,7 +33,7 @@ class Atom(Draggable):
         self.molecule = Molecule({self,})
         self.bonds: dict[Atom, Bond] = {}
         self.valency = element.valency
-        item_id = self.canvas.create_rectangle(
+        item_id = self.canvas.create_oval(
             center.x - radius, center.y - radius,
             center.x + radius, center.y + radius,
             fill=element.color,
@@ -62,21 +63,11 @@ class Atom(Draggable):
         self.canvas.tag_raise(self.tag)
     
     def attempt_bond(self):
-        x1, y1, x2, y2 = self.canvas.bbox(self.tag)
-        bbox_expand = Bond.LENGTH - self.radius
-        near_atoms = [
-            other
-            for other in self.game.find_overlapping_atoms(   
-                x1 - bbox_expand, y1 - bbox_expand,
-                x2 + bbox_expand, y2 + bbox_expand,
-                self
-            )
-            if other.molecule.in_lab and other.molecule != self.molecule
-        ]
-        if len(near_atoms) == 0:
+        other = self.game.find_closest_atom(self.center, Atom.MAX_BONDING_DIST, self,
+            lambda other: other.molecule.in_lab and other.molecule != self.molecule
+        )
+        if other is None:
             return
-        near_atoms.sort(key=lambda other: (other.center - self.center).length())
-        other = near_atoms[0]
         try:
             # Move these later if bond sucessful
             prev_atoms = self.molecule.atoms.copy()
@@ -85,12 +76,11 @@ class Atom(Draggable):
             pass
         else:
             # Reposition dragged atom on sucessful bond to maintain constant bond length
-            # Measures Chebyshev (chessboard) distance since atoms are squares
             bonding_offset = self.center - other.center
             if bonding_offset.is_zero():
                 bonding_offset = Point(1, 0)
             bonding_offset *= (
-                Bond.LENGTH / max(abs(bonding_offset.x), abs(bonding_offset.y))
+                Bond.LENGTH / bonding_offset.length()
             )
             for atom in prev_atoms:
                 atom.move(other.center + bonding_offset - self.center)
@@ -224,7 +214,7 @@ class Atom(Draggable):
         super().remove()
 
 class Bond():
-    LENGTH = 75
+    LENGTH = 70
     next_id = 1
 
     def __init__(self, atom1: Atom, atom2: Atom, bond_order: int) -> None:
