@@ -63,7 +63,7 @@ class Atom(Draggable):
     
     def attempt_bond(self):
         x1, y1, x2, y2 = self.canvas.bbox(self.tag)
-        bbox_expand = 50
+        bbox_expand = Bond.LENGTH - self.radius
         near_atoms = [
             atom
             for atom in self.game.find_overlapping_atoms(   
@@ -80,6 +80,14 @@ class Atom(Draggable):
             self.add_bond(other, 1)
         except ValueError:
             pass
+        else:
+            # Reposition dragged atom on sucessful bond to maintain constant bond length
+            # Measures Chebyshev (chessboard) distance since atoms are squares
+            offset = self.center - other.center
+            if offset.is_zero():
+                offset = Point(1, 0)
+            offset *= (Bond.LENGTH / max(abs(offset.x), abs(offset.y)))
+            self.center = other.center + offset
     
     def drag(self, offset: Point):
         self.molecule.drag(offset)
@@ -132,6 +140,13 @@ class Atom(Draggable):
     @property
     def center(self) -> Point:
         return Point(self.pos.x + self.radius, self.pos.y + self.radius)
+
+    @center.setter
+    def center(self, new: Point) -> None:
+        self.move_to(Point(
+            new.x - self.radius,
+            new.y - self.radius
+        ))
 
     @property
     def bond_orders(self) -> dict[Atom, int]:
@@ -203,6 +218,7 @@ class Atom(Draggable):
         super().remove()
 
 class Bond():
+    LENGTH = 75
     next_id = 1
 
     def __init__(self, atom1: Atom, atom2: Atom, bond_order: int) -> None:
