@@ -60,7 +60,6 @@ class Draggable(ABC):
         self.canvas.moveto(
             self.tag, pos.x, pos.y
         )
-        self.canvas.update_idletasks()
     
     def move(self, offset: Point):
         self.move_to(self.pos + offset)
