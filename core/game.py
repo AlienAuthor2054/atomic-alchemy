@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import tkinter as tk
 from time import perf_counter
+from typing import Callable
 from random import choices
 
 from constants import WINDOW_X, WINDOW_Y, ATOM_SPAWN_WEIGHTS
 from core.element import ELEMENTS_BY_NUM
+from util.point import Point
 
 from .atom import Atom
 from .lab import Lab
@@ -62,3 +64,25 @@ class Game():
             for id in item_ids
             if id in self._atoms_by_item_id and self._atoms_by_item_id[id] != exclude
         ]
+    
+    def find_atoms_in_circle(self, center: Point, radius: float,
+        exclude: Atom | None = None, filter: Callable[[Atom], bool] = lambda _: True
+    ) -> dict[Atom, float]:
+        near_atoms: dict[Atom, float] = {
+            other: distance
+            for other in self.find_overlapping_atoms(   
+                center.x - radius, center.y - radius,
+                center.x + radius, center.y + radius,
+                exclude
+            )
+            if (distance := (other.center - center).length()) < radius and filter(other)
+        }
+        return near_atoms
+    
+    def find_closest_atom(self, center: Point, max_dist: float,
+        exclude: Atom | None = None, filter: Callable[[Atom], bool] = lambda _: True
+    ) -> Atom | None:
+        near_atoms = self.find_atoms_in_circle(center, max_dist, exclude, filter)
+        if len(near_atoms) == 0:
+            return
+        return min(near_atoms, key=lambda atom: near_atoms[atom])
