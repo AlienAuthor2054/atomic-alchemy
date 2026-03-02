@@ -65,13 +65,13 @@ class Atom(Draggable):
         x1, y1, x2, y2 = self.canvas.bbox(self.tag)
         bbox_expand = Bond.LENGTH - self.radius
         near_atoms = [
-            atom
-            for atom in self.game.find_overlapping_atoms(   
+            other
+            for other in self.game.find_overlapping_atoms(   
                 x1 - bbox_expand, y1 - bbox_expand,
                 x2 + bbox_expand, y2 + bbox_expand,
                 self
             )
-            if atom.molecule.in_lab and atom not in self.bonds
+            if other.molecule.in_lab and other.molecule != self.molecule
         ]
         if len(near_atoms) == 0:
             return
