@@ -78,17 +78,22 @@ class Atom(Draggable):
         near_atoms.sort(key=lambda other: (other.center - self.center).length())
         other = near_atoms[0]
         try:
+            # Move these later if bond sucessful
+            prev_atoms = self.molecule.atoms.copy()
             self.add_bond(other, 1)
         except ValueError:
             pass
         else:
             # Reposition dragged atom on sucessful bond to maintain constant bond length
             # Measures Chebyshev (chessboard) distance since atoms are squares
-            offset = self.center - other.center
-            if offset.is_zero():
-                offset = Point(1, 0)
-            offset *= (Bond.LENGTH / max(abs(offset.x), abs(offset.y)))
-            self.center = other.center + offset
+            bonding_offset = self.center - other.center
+            if bonding_offset.is_zero():
+                bonding_offset = Point(1, 0)
+            bonding_offset *= (
+                Bond.LENGTH / max(abs(bonding_offset.x), abs(bonding_offset.y))
+            )
+            for atom in prev_atoms:
+                atom.move(other.center + bonding_offset - self.center)
     
     def drag(self, offset: Point):
         self.molecule.move(offset)
