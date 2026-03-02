@@ -75,6 +75,7 @@ class Atom(Draggable):
         ]
         if len(near_atoms) == 0:
             return
+        near_atoms.sort(key=lambda other: (other.center - self.center).length())
         other = near_atoms[0]
         try:
             self.add_bond(other, 1)
