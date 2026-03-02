@@ -78,7 +78,10 @@ class Draggable(ABC):
         if self.dragging:
             return
         self.move_to(self.pos + self.vel * delta)
-        x1, y1, x2, y2 = self.canvas.bbox(self.tag)
+        bbox = self.canvas.bbox(self.tag)
+        if bbox is None:
+            return
+        x1, y1, x2, y2 = bbox
         if x1 > WINDOW_X or y1 > WINDOW_Y or x2 < 0 or y2 < 0:
             was_inside_window = not self.outside_window
             self.outside_window = True
