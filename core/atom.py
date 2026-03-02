@@ -102,7 +102,6 @@ class Atom(Draggable):
             self.canvas.addtag_withtag("lab_obj", self.tag)
             self.vel = Point(0, 0)
         self.canvas.tag_raise(self.tag, "lab")
-        self.attempt_bond()
         self.on_mol_release()
     
     def on_mol_release_outside_lab(self, was_inside_lab: bool):
@@ -126,6 +125,7 @@ class Atom(Draggable):
         x1, y1, x2, y2 = self.canvas.bbox("lab")
         if x1 < event.x < x2 and y1 < event.y < y2:
             self.molecule.on_release_in_lab()
+            self.attempt_bond()
         else:
             self.molecule.on_release_outside_lab()
 
