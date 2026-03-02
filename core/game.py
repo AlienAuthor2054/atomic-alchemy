@@ -56,9 +56,9 @@ class Game():
         del self._atoms_by_item_id[item_id]
     
     def find_overlapping_atoms(self,
-        x1: float, x2: float, y1: float, y2: float, exclude: Atom | None = None
+        x1: float, y1: float, x2: float, y2: float, exclude: Atom | None = None
     ) -> list[Atom]:
-        item_ids = self.canvas.find_overlapping(x1, x2, y1, y2)
+        item_ids = self.canvas.find_overlapping(x1, y1, x2, y2)
         return [
             self._atoms_by_item_id[id]
             for id in item_ids
