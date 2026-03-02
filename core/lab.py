@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 class Lab(Draggable):
     def __init__(self, game: Game):
         tag = "lab"
-        super().__init__(game, tag, Point(0, 0), Point(0, 0), True)
+        super().__init__(game, tag, Point(0, 0), True)
         self.contents: set[Draggable] = set()
         self.canvas.create_rectangle(
             0, 0,

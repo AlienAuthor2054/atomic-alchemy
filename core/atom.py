@@ -28,9 +28,8 @@ class Atom(Draggable):
         pad = radius
         center = Point(-pad, randrange(pad, WINDOW_Y - pad))
         pos = Point(center.x - radius, center.y - radius)
-        vel = Point(randrange(75, 200), 0)
-        super().__init__(game, tag, pos, vel)
-        self.molecule = Molecule({self,})
+        super().__init__(game, tag, pos)
+        self.molecule = Molecule(game, {self,})
         self.bonds: dict[Atom, Bond] = {}
         self.valency = element.valency
         item_id = self.canvas.create_oval(
@@ -96,7 +95,6 @@ class Atom(Draggable):
             self.game.lab.contents.add(self)
             self.game.physics_objects.remove(self)
             self.canvas.addtag_withtag("lab_obj", self.tag)
-            self.vel = Point(0, 0)
         self.canvas.tag_raise(self.tag, "lab")
         self.on_mol_release()
     
@@ -105,7 +103,6 @@ class Atom(Draggable):
             self.game.lab.contents.remove(self)
             self.game.physics_objects.add(self)
             self.canvas.dtag(self.tag, "lab_obj")
-            self.vel = Point(100, 0)
         self.canvas.tag_lower(self.tag, "lab")
         self.on_mol_release()
 

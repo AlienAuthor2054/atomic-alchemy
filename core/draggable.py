@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from .game import Game
 
 class Draggable(ABC):
-    def __init__(self, game: Game, tag: str, pos: Point, vel: Point = Point(0, 0), limit_to_window: bool = False):
+    def __init__(self, game: Game, tag: str, pos: Point, limit_to_window: bool = False):
         self.game = game
         canvas = game.canvas
         self.canvas = canvas
@@ -19,7 +19,6 @@ class Draggable(ABC):
         self.dragging = False
         self.pos = pos
         self.drag_pos = pos
-        self.vel = vel
         self.limit_to_window = limit_to_window
         self.outside_window = False
         self.last_mouse_pos = Point(0, 0)
@@ -77,7 +76,6 @@ class Draggable(ABC):
     def physics_process(self, delta):
         if self.dragging:
             return
-        self.move_to(self.pos + self.vel * delta)
         bbox = self.canvas.bbox(self.tag)
         if bbox is None:
             return
