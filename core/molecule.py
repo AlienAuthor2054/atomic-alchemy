@@ -42,12 +42,13 @@ class Molecule():
         other_mol.remove()
     
     def split(self, splitter: Atom, split: Atom):
-        if split.molecule != self or not splitter.is_indirectly_bonded(split):
+        if split.molecule != self or splitter.is_indirectly_bonded(split):
             return
         staying_atoms = Molecule.constuct_graph(splitter)
         leaving_atoms = self.atoms - staying_atoms
         self.atoms = staying_atoms
         new_mol = Molecule(self.game, leaving_atoms)
+        new_mol.in_lab = True
         for atom in leaving_atoms:
             atom.molecule = new_mol
     
