@@ -217,8 +217,10 @@ class Bond():
     def __init__(self, atom1: Atom, atom2: Atom, bond_order: int) -> None:
         self.id = Bond.next_id
         Bond.next_id += 1
-        self.tag = "bond" + str(self.id)
-        self.canvas = atom1.canvas
+        tag = "bond" + str(self.id)
+        self.tag = tag
+        canvas = atom1.canvas
+        self.canvas = canvas
         self.atom1 = atom1
         self.atom2 = atom2
         self.order = bond_order
@@ -229,7 +231,11 @@ class Bond():
             tags=(self.tag, "bond"),
         )
         self.update_layering()
+        canvas.tag_bind(tag, "<ButtonPress-3>", self.on_right_click)
     
+    def on_right_click(self, event) -> None:
+        self.atom1.remove_bond(self.atom2, 1)
+
     def update_layering(self) -> None:
         self.canvas.tag_lower(self.tag, "atom")
         self.canvas.tag_raise(self.tag, "lab")
