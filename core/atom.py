@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 from random import randrange
 
 from util.point import Point
-from constants import WINDOW_Y
+from constants import WINDOW_Y, BOND_LENGTH
 
 from .draggable import Draggable
 from .molecule import Molecule
@@ -211,7 +211,7 @@ class Atom(Draggable):
         super().remove()
 
 class Bond():
-    LENGTH = 70
+    LENGTH = BOND_LENGTH
     next_id = 1
 
     def __init__(self, atom1: Atom, atom2: Atom, bond_order: int) -> None:
