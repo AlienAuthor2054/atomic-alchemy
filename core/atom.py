@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 from random import randrange
 
 from util.point import Point
-from constants import WINDOW_Y
+from constants import WINDOW_Y, BOND_LENGTH
 
 from .draggable import Draggable
 from .molecule import Molecule
@@ -17,6 +17,19 @@ if TYPE_CHECKING:
 
 class Atom(Draggable):
     MAX_BONDING_DIST = 100
+    BONDING_SITES = {
+        "right": Point(BOND_LENGTH, 0),
+        "down": Point(0, BOND_LENGTH),
+        "left": Point(-BOND_LENGTH, 0),
+        "up": Point(0, -BOND_LENGTH),
+    }
+    BONDING_SITE_CONVERSION = {
+        "right": "left",
+        "down": "up",
+        "left": "right",
+        "up": "down",
+    }
+
     next_id = 1
 
     def __init__(self, game: Game, element: Element):
@@ -31,6 +44,7 @@ class Atom(Draggable):
         super().__init__(game, tag, pos)
         self.molecule = Molecule(game, {self,})
         self.bonds: dict[Atom, Bond] = {}
+        self.bonding_sites: dict[str, Atom | None] = dict.fromkeys(Atom.BONDING_SITES)
         self.valency = element.valency
         item_id = self.canvas.create_oval(
             center.x - radius, center.y - radius,
@@ -61,28 +75,81 @@ class Atom(Draggable):
         self.molecule.dragging = True
         self.canvas.tag_raise(self.tag)
     
+    def get_clear_bonding_sites(self, other: Atom, prev_atoms: set[Atom]) -> dict[str, Point]:
+        """
+        Returns available bonding sites on the `other` atom.
+
+        Also accounts for atom collisions on bonding.
+        """
+        bonding_sites: dict[str, Point] = {
+            site: other.center + Atom.BONDING_SITES[site]
+            for site in other.bonding_sites
+            if other.bonding_sites[site] is None
+            and self.bonding_sites[Atom.BONDING_SITE_CONVERSION[site]] is None
+        }
+        for site in bonding_sites.copy():
+            offset = bonding_sites[site] - self.center
+            other_atoms = other.molecule.atoms - prev_atoms
+            for atom in prev_atoms:
+                if self.game.find_closest_atom(
+                    atom.center + offset, self.radius, None,
+                    lambda atom: atom in other_atoms
+                ) is None:
+                    continue
+                del bonding_sites[site]
+                break
+        return bonding_sites
+
+    def snap_to_bonding_site(self, other: Atom, prev_atoms: set[Atom],
+        bonding_sites: dict[str, Point] | None = None
+    ) -> None:
+        """
+        Used to reposition dragged atom on sucessful bond
+        to the nearest available bonding site of the `other` atom.
+        
+        `prev_atoms` is used to drag along previously bonded atoms.\n
+        `bonding_sites` assumes sites are clear, like from `Atom.get_clear_bonding_sites`
+        """
+        if bonding_sites is None:
+            bonding_sites = self.get_clear_bonding_sites(other, prev_atoms)
+        if len(bonding_sites) == 0:
+            return
+        bonding_site = min(bonding_sites, key=lambda site:
+            (self.center - bonding_sites[site]).length()
+        )
+        other.bonding_sites[bonding_site] = self
+        self.bonding_sites[Atom.BONDING_SITE_CONVERSION[bonding_site]] = other
+        bonding_pos = other.center + Atom.BONDING_SITES[bonding_site]
+        offset = bonding_pos - self.center
+        for atom in prev_atoms:
+            atom.move(offset)
+    
+    def clear_bonding_site(self, other: Atom):
+        site = next((
+            site for site, atom 
+            in self.bonding_sites.items()
+            if atom is other)
+        )
+        self.bonding_sites[site] = None
+        other.bonding_sites[Atom.BONDING_SITE_CONVERSION[site]] = None
+
     def attempt_bond(self):
         other = self.game.find_closest_atom(self.center, Atom.MAX_BONDING_DIST, self,
             lambda other: other.molecule.in_lab and other.molecule != self.molecule
         )
         if other is None:
             return
+        prev_atoms = self.molecule.atoms.copy()
+        bonding_sites = self.get_clear_bonding_sites(other, prev_atoms)
+        if len(bonding_sites) == 0:
+            print("Unavoidable atom collision within merged molecule on bond formation!")
+            return
         try:
-            # Move these later if bond sucessful
-            prev_atoms = self.molecule.atoms.copy()
             self.add_bond(other, 1)
         except ValueError:
             pass
         else:
-            # Reposition dragged atom on sucessful bond to maintain constant bond length
-            bonding_offset = self.center - other.center
-            if bonding_offset.is_zero():
-                bonding_offset = Point(1, 0)
-            bonding_offset *= (
-                Bond.LENGTH / bonding_offset.length()
-            )
-            for atom in prev_atoms:
-                atom.move(other.center + bonding_offset - self.center)
+            self.snap_to_bonding_site(other, prev_atoms, bonding_sites)
     
     def drag(self, offset: Point):
         self.molecule.move(offset)
@@ -198,6 +265,7 @@ class Atom(Draggable):
             self.bonds[other].order = new_order
         else:
             self.bonds[other].remove()
+            self.clear_bonding_site(other)
             del self.bonds[other]
             del other.bonds[self]
             self.molecule.split(self, other)
@@ -211,7 +279,7 @@ class Atom(Draggable):
         super().remove()
 
 class Bond():
-    LENGTH = 70
+    LENGTH = BOND_LENGTH
     next_id = 1
 
     def __init__(self, atom1: Atom, atom2: Atom, bond_order: int) -> None:
