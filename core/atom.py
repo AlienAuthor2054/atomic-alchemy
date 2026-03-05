@@ -241,12 +241,14 @@ class Atom(Draggable):
         return False
     
     def add_bond(self, other: Atom, bond_order: int = 1):
+        if bond_order > self.bonds_left or bond_order > other.bonds_left:
+            raise ValueError("New bond order exceeds valency of atom(s).")
         if other in self.bonds:
             new_order = self.bonds[other].order + bond_order
         else:
             new_order = bond_order
-        if new_order > self.bonds_left or new_order > other.bonds_left:
-            raise ValueError("New bond order exceeds valency of atom(s).")
+        if new_order > 3:
+            raise ValueError("New bond order exceeds maximum of 3.")
         if other in self.bonds:
             self.bonds[other].order = new_order
         else:
