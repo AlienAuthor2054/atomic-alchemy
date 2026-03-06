@@ -317,12 +317,18 @@ class Bond():
         self.update_lines()
 
     def on_left_click(self, event) -> None:
+        if not self.atom1.molecule.in_lab:
+            print("Cannot form bonds outside of the lab!")
+            return
         try:
             self.atom1.add_bond(self.atom2, 1)
         except ValueError as e:
             print(e)
 
     def on_right_click(self, event) -> None:
+        if not self.atom1.molecule.in_lab:
+            print("Cannot break bonds outside of the lab!")
+            return
         self.atom1.remove_bond(self.atom2, 1)
 
     def update_layering(self) -> None:
