@@ -174,10 +174,10 @@ class Atom(Draggable):
         self.on_mol_release()
 
     def on_mol_release(self):
-        for bond in self.bonds.values():
-            bond.update_layering()
         if len(self.canvas.find_withtag("bond")) > 0:
             self.canvas.tag_raise(self.tag, "bond")
+        for bond in self.bonds.values():
+            bond.update_layering()
     
     def on_release(self, event):
         super().on_release(event)
@@ -289,6 +289,10 @@ class Bond():
         [-1.0, 0.0, 1.0],
     ]
     LINE_WIDTH = 15
+    HITBOX_WIDTH = (
+        (LINE_OFFSETS[-1][-1] - LINE_OFFSETS[-1][0]) * LINE_SEPERATION + LINE_WIDTH
+    )
+    HITBOX_ATOM_OVERLAP = 0.15
     next_id = 1
 
     def __init__(self, atom1: Atom, atom2: Atom, bond_order: int) -> None:
@@ -302,6 +306,12 @@ class Bond():
         self.atom2 = atom2
         self._order = bond_order
         self.lines: list[int | None] = [None, None, None]
+        self.hitbox_id = self.canvas.create_line(
+            0, 0, 0, 0, # update these on update_hitbox()
+            fill="",
+            width=Bond.HITBOX_WIDTH,
+            tags=(self.tag, "bond_hitbox", "bond"),
+        )
         self.update_lines()
         self.update_display()
         canvas.tag_bind(tag, "<ButtonPress-1>", self.on_left_click)
@@ -334,6 +344,7 @@ class Bond():
     def update_layering(self) -> None:
         self.canvas.tag_lower(self.tag, "atom")
         self.canvas.tag_raise(self.tag, "lab")
+        self.canvas.tag_raise(self.hitbox_id, "atom")
 
     def update_lines(self) -> None:
         for i in range(len(self.lines)):
@@ -353,6 +364,18 @@ class Bond():
             self.canvas.itemconfigure(line_id, state="normal")
         self.update_display()
 
+    def update_hitbox(self) -> None:
+        atom_diff = self.atom2.center - self.atom1.center
+        if atom_diff.is_zero():
+            atom_diff = Point(1, 0)
+        self.hitbox_inset = atom_diff.unit(
+            (((2 - Bond.HITBOX_ATOM_OVERLAP) * (self.atom1.radius + self.atom2.radius))
+            - Bond.LENGTH) / 2
+        )
+        self.canvas.coords(self.hitbox_id,
+            *(self.atom1.center + self.hitbox_inset), *(self.atom2.center - self.hitbox_inset)
+        )
+
     def update_display(self) -> None:
         atom_diff = self.atom2.center - self.atom1.center
         if atom_diff.is_zero():
@@ -367,6 +390,7 @@ class Bond():
             self.canvas.coords(line_id,
                 *(self.atom1.center + offset), *(self.atom2.center + offset)
             )
+        self.update_hitbox()
         self.update_layering()
     
     def remove(self) -> None:
