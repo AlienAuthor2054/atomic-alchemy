@@ -1,4 +1,5 @@
 from .atom import Atom
+from .bond import Bond
 from .draggable import Draggable
 from .element import Element
 from .game import Game
