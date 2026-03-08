@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import tkinter as tk
 from time import perf_counter
-from typing import Callable
+from typing import Callable, Literal
 from random import choices
 
 from constants import WINDOW_X, WINDOW_Y, ATOM_SPAWN_WEIGHTS
@@ -19,9 +19,28 @@ class Game():
         self.physics_objects = set()
         self._atoms_by_item_id: dict[int, Atom] = {} # For atom collision detection
         canvas = tk.Canvas(root, width=WINDOW_X, height=WINDOW_Y)
-        canvas.pack()
+        canvas.pack(fill='both')
         self.canvas = canvas
         self.lab = Lab(self)
+
+    def add_widget(self, widget: tk.Widget, norm_x: float, norm_y: float,
+        anchor: Literal['nw', 'n', 'ne', 'w', 'center', 'e', 'sw', 's', 'se']
+    ) -> None:
+        """
+        Embeds a `widget` onto the game canvas.
+
+        Only use for adding gameplay UI,
+        not out-of-game UI like title screen, game over screen, etc.
+
+        `norm_x` and `norm_y` are values from 0 to 1
+        describing the widget's position relative to the window.
+        """
+        self.canvas.create_window(
+            norm_x * WINDOW_X,
+            norm_y * WINDOW_Y,
+            window=widget,
+            anchor=anchor,
+        )
 
     def start(self):
         self.atom_spawn_loop()

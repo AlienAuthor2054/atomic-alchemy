@@ -4,6 +4,7 @@ from tkinter.font import Font as TkFont
 
 from constants import WINDOW_X, WINDOW_Y
 from core import Game
+from ui import PointsFrame
 
 def main():
     root = tk.Tk()
@@ -14,8 +15,11 @@ def main():
 
     DEFAULT_FONT = TkFont(size=20)
 
-    button = tk.Button(root, text="Spawn Atom", command=game.spawn_atom, font=DEFAULT_FONT)
-    button.place(x=0, y=0)
+    spawn_button = tk.Button(game.canvas, text="Spawn Atom", command=game.spawn_atom, font=DEFAULT_FONT)
+    game.add_widget(spawn_button, 0, 0, 'nw')
+
+    points_frame = PointsFrame(game.canvas)
+    game.add_widget(points_frame, 0.5, 1, 's')
 
     game.start()
     root.mainloop()
