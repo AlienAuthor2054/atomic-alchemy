@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import tkinter as tk
 from time import perf_counter
-from typing import Callable, Literal
+from typing import TYPE_CHECKING, Callable, Literal
 from random import choices
 
 from constants import WINDOW_X, WINDOW_Y, ATOM_SPAWN_WEIGHTS
@@ -11,6 +11,9 @@ from util.point import Point
 
 from .atom import Atom
 from .lab import Lab
+from .scoring import score_bond_change
+if TYPE_CHECKING:
+    from .bond import Bond
 
 class Game():
     def __init__(self, root: tk.Tk) -> None:
@@ -22,6 +25,7 @@ class Game():
         canvas.pack(fill='both')
         self.canvas = canvas
         self.lab = Lab(self)
+        self.points = tk.IntVar()
 
     def add_widget(self, widget: tk.Widget, norm_x: float, norm_y: float,
         anchor: Literal['nw', 'n', 'ne', 'w', 'center', 'e', 'sw', 's', 'se']
@@ -105,3 +109,7 @@ class Game():
         if len(near_atoms) == 0:
             return
         return min(near_atoms, key=lambda atom: near_atoms[atom])
+
+    def score_bond_change(self, bond: Bond, prev_order: int, new_order: int):
+        change = score_bond_change(bond, prev_order, new_order)
+        self.points.set(self.points.get() + change)

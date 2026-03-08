@@ -33,6 +33,9 @@ class Bond():
         self.atom1 = atom1
         self.atom2 = atom2
         self._order = bond_order
+        game = atom1.game
+        game.score_bond_change(self, 0, bond_order)
+        self.game = game
         self.lines: list[int | None] = [None, None, None]
         self.hitbox_id = self.canvas.create_line(
             0, 0, 0, 0, # update these on update_hitbox()
@@ -51,6 +54,7 @@ class Bond():
 
     @order.setter
     def order(self, new: int) -> None:
+        self.game.score_bond_change(self, self._order, new)
         self._order = new
         self.update_lines()
 
@@ -122,5 +126,6 @@ class Bond():
         self.update_layering()
     
     def remove(self) -> None:
+        self.game.score_bond_change(self, self.order, 0)
         self.canvas.delete(self.tag)
         del self

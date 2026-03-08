@@ -18,7 +18,7 @@ def main():
     spawn_button = tk.Button(game.canvas, text="Spawn Atom", command=game.spawn_atom, font=DEFAULT_FONT)
     game.add_widget(spawn_button, 0, 0, 'nw')
 
-    points_frame = PointsFrame(game.canvas)
+    points_frame = PointsFrame(game)
     game.add_widget(points_frame, 0.5, 1, 's')
 
     game.start()

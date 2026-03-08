@@ -43,6 +43,7 @@ class Atom(Draggable):
         center = Point(-pad, randrange(pad, WINDOW_Y - pad))
         pos = Point(center.x - radius, center.y - radius)
         super().__init__(game, tag, pos)
+        self.element = element
         self.molecule = Molecule(game, {self,})
         self.bonds: dict[Atom, Bond] = {}
         self.bonding_sites: dict[str, Atom | None] = dict.fromkeys(Atom.BONDING_SITES)
