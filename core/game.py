@@ -25,7 +25,17 @@ class Game():
         canvas.pack(fill='both')
         self.canvas = canvas
         self.lab = Lab(self)
-        self.points = tk.IntVar()
+        self._points = 0
+        self.points_var = tk.IntVar()
+    
+    @property
+    def points(self) -> int:
+        return self._points
+    
+    @points.setter
+    def points(self, new: int) -> None:
+        self._points = new
+        self.points_var.set(new)
 
     def add_widget(self, widget: tk.Widget, norm_x: float, norm_y: float,
         anchor: Literal['nw', 'n', 'ne', 'w', 'center', 'e', 'sw', 's', 'se']
@@ -112,4 +122,4 @@ class Game():
 
     def score_bond_change(self, bond: Bond, prev_order: int, new_order: int):
         change = score_bond_change(bond, prev_order, new_order)
-        self.points.set(self.points.get() + change)
+        self.points += change
