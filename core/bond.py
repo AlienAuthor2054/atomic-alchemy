@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 from util.point import Point
 from constants import BOND_LENGTH
 
+from .scoring import score_bond
 if TYPE_CHECKING:
     from .atom import Atom
 
@@ -16,9 +17,9 @@ class Bond():
         [-0.5, 0.5], 
         [-1.0, 0.0, 1.0],
     ]
-    LINE_WIDTH = 15
+    BASE_LINE_WIDTH = 15
     HITBOX_WIDTH = (
-        (LINE_OFFSETS[-1][-1] - LINE_OFFSETS[-1][0]) * LINE_SEPERATION + LINE_WIDTH
+        (LINE_OFFSETS[-1][-1] - LINE_OFFSETS[-1][0]) * LINE_SEPERATION + BASE_LINE_WIDTH
     )
     HITBOX_ATOM_OVERLAP = 0.15
     next_id = 1
@@ -36,6 +37,7 @@ class Bond():
         game = atom1.game
         game.score_bond_change(self, 0, bond_order)
         self.game = game
+        self.points = score_bond(self)
         self.lines: list[int | None] = [None, None, None]
         self.hitbox_id = self.canvas.create_line(
             0, 0, 0, 0, # update these on update_hitbox()
@@ -56,6 +58,7 @@ class Bond():
     def order(self, new: int) -> None:
         self.game.score_bond_change(self, self._order, new)
         self._order = new
+        self.points = score_bond(self)
         self.update_lines()
 
     def on_left_click(self, event) -> None:
@@ -79,21 +82,23 @@ class Bond():
         self.canvas.tag_raise(self.hitbox_id, "atom")
 
     def update_lines(self) -> None:
+        line_width = self.points * Bond.BASE_LINE_WIDTH / 10 / self.order
         for i in range(len(self.lines)):
             line_id = self.lines[i]
-            if i >= self.order:
-                if line_id is not None:
-                    self.canvas.itemconfigure(line_id, state="hidden")
-                break
             if line_id is None:
+                if i >= self.order:
+                    continue
                 line_id = self.canvas.create_line(
                     *self.atom1.center, *self.atom2.center, 
                     fill="black",
-                    width=Bond.LINE_WIDTH,
                     tags=(self.tag, "bond"),
                 )
                 self.lines[i] = line_id
-            self.canvas.itemconfigure(line_id, state="normal")
+            self.canvas.itemconfigure(
+                line_id,
+                state="normal" if i < self.order else "hidden",
+                width=line_width
+            )
         self.update_display()
 
     def update_hitbox(self) -> None:
