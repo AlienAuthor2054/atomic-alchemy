@@ -1,7 +1,5 @@
 import tkinter as tk
 
-import time
-
 from core import Game
 
 class TimerFrame(tk.Frame):

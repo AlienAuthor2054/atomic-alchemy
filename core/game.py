@@ -137,13 +137,13 @@ class Game():
         seconds = max(0, self.time_set - elapsed)
 
         if seconds <= 0:
-            self.time.set(f"00:00")
+            self.time_var.set(f"00:00")
             self.on_timer_end()
             return
 
         m, s = divmod(seconds, 60)
 
-        self.time.set(f"{m:02d}:{s:02d}")
+        self.time_var.set(f"{m:02d}:{s:02d}")
 
     def on_timer_end(self):
         if self.time_finished: return
