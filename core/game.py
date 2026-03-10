@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import tkinter as tk
-from time import perf_counter
+from time import perf_counter, time
 from typing import TYPE_CHECKING, Callable, Literal
 from random import choices
 
@@ -27,7 +27,12 @@ class Game():
         self.lab = Lab(self)
         self._points = 0
         self.points_var = tk.IntVar()
-    
+
+        self.time_var = tk.StringVar()
+        self.time_started = int(time())
+        self.time_finished = False
+        self.time_set = 180
+        
     @property
     def points(self) -> int:
         return self._points
@@ -64,6 +69,7 @@ class Game():
         delta = perf_counter() - self.prev_time
         self.tick(delta)
         self.prev_time = perf_counter()
+        self.update_time()
         self.root.after(8, lambda: self.loop())
     
     def tick(self, delta):
@@ -123,3 +129,25 @@ class Game():
     def score_bond_change(self, bond: Bond, prev_order: int, new_order: int):
         change = score_bond_change(bond, prev_order, new_order)
         self.points += change
+    
+    def update_time(self):
+        time_current = int(time())
+        elapsed = time_current - self.time_started
+
+        seconds = max(0, self.time_set - elapsed)
+
+        if seconds <= 0:
+            self.time_var.set(f"00:00")
+            self.on_timer_end()
+            return
+
+        m, s = divmod(seconds, 60)
+
+        self.time_var.set(f"{m:02d}:{s:02d}")
+
+    def on_timer_end(self):
+        if self.time_finished: return
+
+        self.time_finished = True
+
+        print("Timer end")
