@@ -259,7 +259,7 @@ class Atom(Draggable):
             other.bonds[self] = bond
             self.molecule.merge(self, other)
 
-    def remove_bond(self, other: Atom, bond_order: int = 1):
+    def remove_bond(self, other: Atom, bond_order: int = 1, is_scored: bool = True):
         if other not in self.bonds:
             raise ValueError("No bond to remove between these atoms.")
         new_order = self.bonds[other].order - bond_order
@@ -268,7 +268,7 @@ class Atom(Draggable):
         if new_order > 0:
             self.bonds[other].order = new_order
         else:
-            self.bonds[other].remove()
+            self.bonds[other].remove(is_scored)
             self.clear_bonding_site(other)
             del self.bonds[other]
             del other.bonds[self]
@@ -276,7 +276,7 @@ class Atom(Draggable):
     
     def remove(self) -> None:
         for other in self.bonds.copy():
-            self.remove_bond(other, self.bonds[other].order)
+            self.remove_bond(other, self.bonds[other].order, False)
         self.game.lab.contents.discard(self)
         self.game.deregister_atom(self)
         self.molecule.remove_atom(self)
