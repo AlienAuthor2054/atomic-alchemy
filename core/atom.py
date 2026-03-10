@@ -48,12 +48,20 @@ class Atom(Draggable):
         self.bonds: dict[Atom, Bond] = {}
         self.bonding_sites: dict[str, Atom | None] = dict.fromkeys(Atom.BONDING_SITES)
         self.valency = element.valency
-        item_id = self.canvas.create_oval(
+
+        self.texture = tk.PhotoImage(file = f"textures\\texture_{self.element.name}.png")
+
+        item_id = self.canvas.create_image(center.x, center.y, image=self.texture, tags=(tag, "atom"))
+
+        """
+            item_id = self.canvas.create_oval(
             center.x - radius, center.y - radius,
             center.x + radius, center.y + radius,
             fill=element.color,
             tags=(tag, "atom"),
-        )
+            )
+        """
+        
         label_font = TkFont(size=radius)
         self.canvas.create_text(
             center.x,
