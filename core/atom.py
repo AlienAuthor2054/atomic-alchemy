@@ -49,7 +49,7 @@ class Atom(Draggable):
         self.bonding_sites: dict[str, Atom | None] = dict.fromkeys(Atom.BONDING_SITES)
         self.valency = element.valency
 
-        self.texture = tk.PhotoImage(file = f"textures\\texture_{self.element.name}.png")
+        self.texture = tk.PhotoImage(file = f"assets\\textures\\texture_{self.element.name}.png")
 
         item_id = self.canvas.create_image(center.x, center.y, image=self.texture, tags=(tag, "atom"))
 

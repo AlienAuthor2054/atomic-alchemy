@@ -15,6 +15,8 @@ from .scoring import score_bond_change
 if TYPE_CHECKING:
     from .bond import Bond
 
+from .audio import Audio
+
 class Game():
     def __init__(self, root: tk.Tk) -> None:
         self.root = root
@@ -32,6 +34,11 @@ class Game():
         self.time_started = int(time())
         self.time_finished = False
         self.time_set = 180
+
+        self.mixer = Audio().mixer
+        self.mixer.music.load(filename='assets\\audio\song\song_placeholder.ogg') # not actual song lol
+        self.mixer.music.set_volume(0.25)
+        self.mixer.music.play(-1)
         
     @property
     def points(self) -> int:
@@ -82,6 +89,8 @@ class Game():
             list(ATOM_SPAWN_WEIGHTS.values()),
             k=1
         )[0]])
+        
+        self.mixer.Sound('assets\\audio\sfx\sfx_placeholder.wav').play()
 
     def atom_spawn_loop(self):
         self.spawn_atom()

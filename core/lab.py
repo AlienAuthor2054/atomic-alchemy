@@ -15,7 +15,7 @@ class Lab(Draggable):
         super().__init__(game, tag, Point(0, 0), True)
         self.contents: set[Draggable] = set()
 
-        self.texture = PhotoImage(file = f"textures\\texture_Tray.png")
+        self.texture = PhotoImage(file = f"assets\\textures\\texture_Tray.png")
 
         self.canvas.create_image(480, 270, image=self.texture, tags=tag)
         """
