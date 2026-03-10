@@ -31,7 +31,7 @@ class Game():
         self.time_var = tk.StringVar()
         self.time_started = int(time())
         self.time_finished = False
-        self.time_set = 300
+        self.time_set = 180
         
     @property
     def points(self) -> int:
