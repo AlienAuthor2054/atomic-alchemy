@@ -1,11 +1,52 @@
 import tkinter as tk
 
 from core import Game
+from typing import Literal
+from constants import WINDOW_X, WINDOW_Y
 
-class TimerFrame(tk.Frame):
-    def __init__(self, game: Game):
-        super().__init__(game.canvas)
-        label = tk.Label(self, textvariable=game.time_var, font="TkFixedFont 60",
-            bg="white", bd=10, relief="ridge"
+class GameTimer:
+    def __init__(self, game: Game, norm_x: float, norm_y: float, anchor: Literal['nw', 'n', 'ne', 'w', 'center', 'e', 'sw', 's', 'se']):
+        self.game = game
+        self.canvas = game.canvas
+
+        self.x = norm_x * WINDOW_X
+        self.y = norm_y * WINDOW_Y
+
+        self.texture = tk.PhotoImage(file="assets\\textures\\texture_Timer.png")
+        self.image = self.canvas.create_image(
+            self.x,
+            self.y,
+            image=self.texture,
+            anchor=anchor
         )
-        label.grid(column=0, row=0)
+
+        img_w = self.texture.width()  
+        img_h = self.texture.height()
+
+        center_x = self.x
+        center_y = self.y
+
+        if 'w' in anchor: 
+            center_x += img_w / 2
+        elif 'e' in anchor: 
+            center_x -= img_w / 2
+
+        if 'n' in anchor: 
+            center_y += img_h / 2
+        elif 's' in anchor: 
+            center_y -= img_h / 2
+
+        offset_x = 5
+
+        self.text = self.canvas.create_text(
+            center_x + offset_x,
+            center_y,
+            text=self.game.time_var.get(),
+            font=("TkFixedFont", 35),
+            fill = "black",
+        )
+
+        self.game.time_var.trace_add("write", self.update_text)
+    
+    def update_text(self, *args):
+        self.canvas.itemconfig(self.text, text=self.game.time_var.get())

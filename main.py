@@ -4,8 +4,7 @@ from tkinter.font import Font as TkFont
 
 from constants import WINDOW_X, WINDOW_Y
 from core import Game
-from ui import PointsFrame, TimerFrame
-
+from ui import PointsFrame, GameTimer
 def main():
     root = tk.Tk()
     root.title("Atomic Alchemy")
@@ -21,8 +20,12 @@ def main():
     points_frame = PointsFrame(game)
     game.add_widget(points_frame, 0.5, 1, 's')
 
-    timer_frame = TimerFrame(game)
-    game.add_widget(timer_frame, 1, 0, 'ne')
+    timer = GameTimer(game, 1, 0.05, 'ne')
+
+    """
+        timer_frame = TimerFrame(game)
+        game.add_widget(timer_frame, 1, 0, 'ne')
+    """
 
     game.start()
     root.mainloop()
