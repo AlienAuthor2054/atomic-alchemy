@@ -28,7 +28,7 @@ def main():
 
         timer = GameTimer(game, 1, 0.05, 'ne')
 
-        game.start(3, lambda:game_end(game))
+        game.start(180, lambda:game_end(game))
 
     def game_end(game: Game):
         game.unload()
