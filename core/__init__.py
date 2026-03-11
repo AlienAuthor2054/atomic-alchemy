@@ -5,4 +5,5 @@ from .element import Element
 from .game import Game
 from .lab import Lab
 from .molecule import Molecule
-from .audio import Audio
+from .scene import Scene
+from .menu import Menu

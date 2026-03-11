@@ -9,36 +9,34 @@ from constants import WINDOW_X, WINDOW_Y, ATOM_SPAWN_WEIGHTS
 from core.element import ELEMENTS_BY_NUM
 from util.point import Point
 
+from .scene import Scene
 from .atom import Atom
 from .lab import Lab
 from .scoring import score_bond_change
 if TYPE_CHECKING:
     from .bond import Bond
 
-from .audio import Audio
-
-class Game():
+class Game(Scene):
     def __init__(self, root: tk.Tk) -> None:
-        self.root = root
+        super().__init__(root)
         self.prev_time: float = 0.0
         self.physics_objects = set()
         self._atoms_by_item_id: dict[int, Atom] = {} # For atom collision detection
         canvas = tk.Canvas(root, width=WINDOW_X, height=WINDOW_Y)
-        canvas.pack(fill='both')
         self.canvas = canvas
         self.lab = Lab(self)
         self._points = 0
         self.points_var = tk.IntVar()
 
+        self.game_started = False
+
         self.time_var = tk.StringVar()
         self.time_started = int(time())
-        self.time_finished = False
+        self._time_finished = False
         self.time_set = 180
 
-        self.mixer = Audio().mixer
-        self.mixer.music.load(filename='assets\\audio\song\song_placeholder.ogg') # not actual song lol
-        self.mixer.music.set_volume(0.25)
-        self.mixer.music.play(-1)
+        self.on_end = None
+
         
     @property
     def points(self) -> int:
@@ -49,35 +47,62 @@ class Game():
         self._points = new
         self.points_var.set(new)
 
-    def add_widget(self, widget: tk.Widget, norm_x: float, norm_y: float,
-        anchor: Literal['nw', 'n', 'ne', 'w', 'center', 'e', 'sw', 's', 'se']
-    ) -> None:
-        """
-        Embeds a `widget` onto the game canvas.
+    @property
+    def time_finished(self):
+        return self._time_finished
+    
+    @time_finished.setter
+    def time_finished(self, value: bool):
+        if value != self._time_finished:
+            self.on_timer_end()
+        
+        self._time_finished = value
 
-        Only use for adding gameplay UI,
-        not out-of-game UI like title screen, game over screen, etc.
+    def start(self, timer: int = 180, on_end: Callable[[], None] | None = None):
+        self.game_started = True
 
-        `norm_x` and `norm_y` are values from 0 to 1
-        describing the widget's position relative to the window.
-        """
-        self.canvas.create_window(
-            norm_x * WINDOW_X,
-            norm_y * WINDOW_Y,
-            window=widget,
-            anchor=anchor,
-        )
+        self.time_set = timer
+        self.on_end = on_end
 
-    def start(self):
+        self.mixer.music.load(filename='assets\\audio\song\song_placeholder.ogg') # not actual song lol
+        self.mixer.music.set_volume(0.25)
+        self.mixer.music.play(-1)
+        
+        self.canvas.pack(fill='both')
+
         self.atom_spawn_loop()
+
         self.root.after(0, self.loop)
 
+    def stop(self):
+        self.game_started = False
+
+        self.mixer.music.fadeout(1000)
+
+        if self.loop_game:
+            self.root.after_cancel(self.loop_game)
+            self.loop_game = None
+
+        if self.loop_atom:
+            self.root.after_cancel(self.loop_atom)
+            self.loop_atom
+
     def loop(self):
-        delta = perf_counter() - self.prev_time
-        self.tick(delta)
-        self.prev_time = perf_counter()
-        self.update_time()
-        self.root.after(8, lambda: self.loop())
+        if self.game_started:
+            delta = perf_counter() - self.prev_time
+            self.tick(delta)
+            self.prev_time = perf_counter()
+            self.update_time()
+            self.loop_game = self.root.after(8, lambda: self.loop())
+
+    def unload(self):
+        self.stop()
+        
+        self.physics_objects.clear()
+        self._atoms_by_item_id.clear()
+        
+        if self.canvas:
+            self.canvas.destroy()
     
     def tick(self, delta):
         for obj in self.physics_objects.copy():
@@ -93,8 +118,9 @@ class Game():
         self.mixer.Sound('assets\\audio\sfx\sfx_placeholder.wav').play()
 
     def atom_spawn_loop(self):
-        self.spawn_atom()
-        self.root.after(2000, lambda: self.atom_spawn_loop())
+        if self.game_started:
+            self.spawn_atom()
+            self.loop_atom = self.root.after(2000, lambda: self.atom_spawn_loop())
     
     def register_atom(self, atom: Atom, item_id: int):
         self._atoms_by_item_id[item_id] = atom
@@ -147,7 +173,7 @@ class Game():
 
         if seconds <= 0:
             self.time_var.set(f"00:00")
-            self.on_timer_end()
+            self.time_finished = True
             return
 
         m, s = divmod(seconds, 60)
@@ -155,8 +181,7 @@ class Game():
         self.time_var.set(f"{m:02d}:{s:02d}")
 
     def on_timer_end(self):
-        if self.time_finished: return
-
-        self.time_finished = True
-
-        print("Timer end")
+        self.stop()
+        
+        if self.on_end:
+            self.on_end()
