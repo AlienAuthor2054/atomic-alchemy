@@ -84,6 +84,8 @@ class Atom(Draggable):
         super().on_click(event)
         self.molecule.dragging = True
         self.canvas.tag_raise(self.tag)
+
+        self.game.mixer.Sound(file="assets\\audio\sfx\sfx_atom_click.ogg").play()
     
     def get_clear_bonding_sites(self, other: Atom, prev_atoms: set[Atom]) -> dict[str, Point]:
         """
@@ -198,6 +200,8 @@ class Atom(Draggable):
             self.attempt_bond()
         else:
             self.molecule.on_release_outside_lab()
+
+        self.game.mixer.Sound(file="assets\\audio\sfx\sfx_atom_release.ogg").play()
 
     def on_exit_window(self) -> None:
         self.molecule.on_atom_exit_window()

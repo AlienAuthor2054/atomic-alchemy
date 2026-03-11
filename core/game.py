@@ -37,7 +37,6 @@ class Game(Scene):
 
         self.on_end = None
 
-        
     @property
     def points(self) -> int:
         return self._points
@@ -64,7 +63,7 @@ class Game(Scene):
         self.time_set = timer
         self.on_end = on_end
 
-        self.mixer.music.load(filename='assets\\audio\song\song_placeholder.ogg') # not actual song lol
+        self.mixer.music.load(filename='assets\\audio\song\song_sine.ogg')
         self.mixer.music.set_volume(0.25)
         self.mixer.music.play(-1)
         
@@ -114,8 +113,6 @@ class Game(Scene):
             list(ATOM_SPAWN_WEIGHTS.values()),
             k=1
         )[0]])
-        
-        self.mixer.Sound('assets\\audio\sfx\sfx_placeholder.wav').play()
 
     def atom_spawn_loop(self):
         if self.game_started:
