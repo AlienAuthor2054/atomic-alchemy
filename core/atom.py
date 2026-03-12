@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from .game import Game
 
 class Atom(Draggable):
-    MAX_BONDING_DIST = 100
+    MAX_BONDING_DIST = 80
     BONDING_SITES = {
         "right": Point(BOND_LENGTH, 0),
         "down": Point(0, BOND_LENGTH),
@@ -30,6 +30,11 @@ class Atom(Draggable):
         "left": "right",
         "up": "down",
     }
+    ORB_SITE_ORDER = [
+        "right", "left", "up", "down"
+    ]
+    ORB_RADIUS = 10
+    ORB_DIST = 30
 
     next_id = 1
 
@@ -47,6 +52,7 @@ class Atom(Draggable):
         self.molecule = Molecule(game, {self,})
         self.bonds: dict[Atom, Bond] = {}
         self.bonding_sites: dict[str, Atom | None] = dict.fromkeys(Atom.BONDING_SITES)
+        self.orb_sites: dict[str, int | None] = dict.fromkeys(Atom.BONDING_SITES)
         self.valency = element.valency
         item_id = self.canvas.create_oval(
             center.x - radius, center.y - radius,
@@ -66,6 +72,7 @@ class Atom(Draggable):
         )
         self.canvas.tag_lower(tag, "lab")
         self.game.register_atom(self, item_id)
+        self.update_orbs()
     
     def physics_process(self, delta):
         if self.molecule.in_lab or self.molecule.dragging:
@@ -77,6 +84,41 @@ class Atom(Draggable):
         self.molecule.dragging = True
         self.canvas.tag_raise(self.tag)
     
+    def update_orb(self, site: str, show: bool):
+        orb_id = self.orb_sites.get(site)
+        orb_pos = self.center + Atom.BONDING_SITES[site].unit(Atom.ORB_DIST)
+        if orb_id is None:
+            if not show:
+                return
+            orb_id = self.canvas.create_oval(
+                orb_pos.x - Atom.ORB_RADIUS, orb_pos.y - Atom.ORB_RADIUS,
+                orb_pos.x + Atom.ORB_RADIUS, orb_pos.y + Atom.ORB_RADIUS,
+                fill="yellow",
+                tags=(self.tag, "atom"),
+            )
+            if not self.molecule.in_lab:
+                self.canvas.tag_lower(orb_id, "lab")
+            self.orb_sites[site] = orb_id
+        self.canvas.itemconfig(orb_id, state="normal" if show else "hidden")
+
+    def update_orbs(self):
+        orb_sites = [
+            site for site in Atom.ORB_SITE_ORDER
+            if self.bonding_sites[site] is None
+        ]
+        num_taken_sites = len(self.bonding_sites) - len(orb_sites)
+        if num_taken_sites == 1:
+            site = Atom.BONDING_SITE_CONVERSION[next((
+                site for site, atom in self.bonding_sites.items() if atom is not None
+            ))]
+            orb_sites.remove(site)
+            orb_sites.insert(0, site)
+        if len(orb_sites) > self.bonds_left:
+            orb_sites = orb_sites[:self.bonds_left]
+        for site in Atom.BONDING_SITES:
+            show = site in orb_sites
+            self.update_orb(site, show)
+
     def get_clear_bonding_sites(self, other: Atom, prev_atoms: set[Atom]) -> dict[str, Point]:
         """
         Returns available bonding sites on the `other` atom.
@@ -152,6 +194,8 @@ class Atom(Draggable):
             pass
         else:
             self.snap_to_bonding_site(other, prev_atoms, bonding_sites)
+            self.update_orbs()
+            other.update_orbs()
     
     def drag(self, offset: Point):
         self.molecule.move(offset)
@@ -258,6 +302,8 @@ class Atom(Draggable):
             self.bonds[other] = bond
             other.bonds[self] = bond
             self.molecule.merge(self, other)
+        self.update_orbs()
+        other.update_orbs()
 
     def remove_bond(self, other: Atom, bond_order: int = 1, is_scored: bool = True):
         if other not in self.bonds:
@@ -273,6 +319,8 @@ class Atom(Draggable):
             del self.bonds[other]
             del other.bonds[self]
             self.molecule.split(self, other)
+        self.update_orbs()
+        other.update_orbs()
     
     def remove(self) -> None:
         for other in self.bonds.copy():
