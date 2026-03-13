@@ -17,7 +17,7 @@ class Scene():
 
     def add_widget(self, widget: tk.Widget, norm_x: float, norm_y: float,
         anchor: Literal['nw', 'n', 'ne', 'w', 'center', 'e', 'sw', 's', 'se']
-    ) -> None:
+    ):
         """
         Embeds a `widget` onto the scene canvas.
 
@@ -27,12 +27,14 @@ class Scene():
         `norm_x` and `norm_y` are values from 0 to 1
         describing the widget's position relative to the window.
         """
-        self.canvas.create_window(
+        window_id = self.canvas.create_window(
             norm_x * WINDOW_X,
             norm_y * WINDOW_Y,
             window=widget,
             anchor=anchor,
         )
+
+        return window_id
 
     def load(self):
         self.canvas.pack(fill='both')
