@@ -3,40 +3,38 @@ import tkinter as tk
 from tkinter.font import Font as TkFont
 
 from constants import WINDOW_X, WINDOW_Y
-from core import Game, Menu, Scene
-from ui import PointsFrame, GameTimer
+from core import Game, Scene
+from ui import Menu
+
+class App(tk.Tk):
+    def __init__(self) -> None:
+        super().__init__()
+        self.title("Atomic Alchemy")
+        self.geometry(f"{WINDOW_X}x{WINDOW_Y}")
+        self.resizable(width=False, height=False)
+        self.active_scene: Scene | None = None
+
+        menu = Menu(self)
+        self.game = Game(self)
+        self.switch_scene(menu)
+        self.bind("<<MenuStart>>", self.on_start_btn_pressed)
+    
+    def on_start_btn_pressed(self, event) -> None:
+        self.switch_scene(self.game)
+        self.game.start(180, self.on_game_over)
+    
+    def on_game_over(self) -> None:
+        # switch to game over scene here
+        pass
+
+    def switch_scene(self, scene: Scene) -> None:
+        if self.active_scene is not None:
+            self.active_scene.unload()
+        scene.load()
+        self.active_scene = scene
 
 def main():
-    root = tk.Tk()
-    root.title("Atomic Alchemy")
-    root.geometry(f"{WINDOW_X}x{WINDOW_Y}")
-    root.resizable(width=False, height=False)
-
-    menu = Menu(root)
-
-    def game_start(event):
-        menu.unload()
-
-        game = Game(root)
-        game.load()
-
-        spawn_button = tk.Button(game.canvas, text="Spawn Atom", command=game.spawn_atom)
-        game.add_widget(spawn_button, 0, 0, 'nw')
-
-        points_frame = PointsFrame(game)
-        game.add_widget(points_frame, 0.5, 1, 's')
-
-        timer = GameTimer(game, 1, 0.05, 'ne')
-
-        game.start(180, lambda:game_end(game))
-
-    def game_end(game: Game):
-        game.unload()
-        menu.load()
-
-    menu.load()
-
-    root.bind("<<MenuStart>>", game_start)
+    root = App()
     root.mainloop()
 
 if __name__ == "__main__":

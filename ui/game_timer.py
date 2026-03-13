@@ -1,13 +1,12 @@
 import tkinter as tk
 
-from core import Game
 from typing import Literal
 from constants import WINDOW_X, WINDOW_Y
 
 class GameTimer:
-    def __init__(self, game: Game, norm_x: float, norm_y: float, anchor: Literal['nw', 'n', 'ne', 'w', 'center', 'e', 'sw', 's', 'se']):
-        self.game = game
-        self.canvas = game.canvas
+    def __init__(self, canvas, time_var, norm_x: float, norm_y: float, anchor: Literal['nw', 'n', 'ne', 'w', 'center', 'e', 'sw', 's', 'se']):
+        self.canvas = canvas
+        self.time_var = time_var
 
         self.x = norm_x * WINDOW_X
         self.y = norm_y * WINDOW_Y
@@ -41,12 +40,12 @@ class GameTimer:
         self.text = self.canvas.create_text(
             center_x + offset_x,
             center_y,
-            text=self.game.time_var.get(),
+            text=self.time_var.get(),
             font=("TkFixedFont", 35),
             fill = "black",
         )
 
-        self.game.time_var.trace_add("write", self.update_text)
+        self.time_var.trace_add("write", self.update_text)
     
     def update_text(self, *args):
-        self.canvas.itemconfig(self.text, text=self.game.time_var.get())
+        self.canvas.itemconfig(self.text, text=self.time_var.get())

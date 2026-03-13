@@ -6,4 +6,3 @@ from .game import Game
 from .lab import Lab
 from .molecule import Molecule
 from .scene import Scene
-from .menu import Menu

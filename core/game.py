@@ -9,6 +9,7 @@ from constants import WINDOW_X, WINDOW_Y, ATOM_SPAWN_WEIGHTS
 from core.element import ELEMENTS_BY_NUM
 from util.point import Point
 
+from ui import PointsFrame, GameTimer
 from .scene import Scene
 from .atom import Atom
 from .lab import Lab
@@ -22,8 +23,6 @@ class Game(Scene):
         self.prev_time: float = 0.0
         self.physics_objects = set()
         self._atoms_by_item_id: dict[int, Atom] = {} # For atom collision detection
-        canvas = tk.Canvas(root, width=WINDOW_X, height=WINDOW_Y)
-        self.canvas = canvas
         self.lab = Lab(self)
         self._points = 0
         self.points_var = tk.IntVar()
@@ -36,6 +35,8 @@ class Game(Scene):
         self.time_set = 180
 
         self.on_end = None
+
+        self.init_ui()
 
     @property
     def points(self) -> int:
@@ -57,9 +58,21 @@ class Game(Scene):
         
         self._time_finished = value
 
+    def init_ui(self):
+        spawn_button = tk.Button(self.canvas, text="Spawn Atom", command=self.spawn_atom)
+        self.add_widget(spawn_button, 0, 0, 'nw')
+
+        points_frame = PointsFrame(self.canvas, self.points_var)
+        self.add_widget(points_frame, 0.5, 1, 's')
+
+        timer_frame = GameTimer(self.canvas, self.time_var, 1, 0.05, 'ne')
+        #self.add_widget(points_frame, 1, 0.05, 'ne')
+
     def start(self, timer: int = 180, on_end: Callable[[], None] | None = None):
         self.game_started = True
 
+        self.prev_time = perf_counter()
+        self.time_started = int(time())
         self.time_set = timer
         self.on_end = on_end
 

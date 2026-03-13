@@ -1,4 +1,4 @@
-from .scene import Scene
+from core.scene import Scene
 from constants import WINDOW_X, WINDOW_Y
 
 import tkinter as tk
