@@ -130,7 +130,8 @@ class Bond():
         self.update_hitbox()
         self.update_layering()
     
-    def remove(self) -> None:
-        self.game.score_bond_change(self, self.order, 0)
+    def remove(self, is_scored: bool = True) -> None:
+        if is_scored:
+            self.game.score_bond_change(self, self.order, 0)
         self.canvas.delete(self.tag)
         del self
