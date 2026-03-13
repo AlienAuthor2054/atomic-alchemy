@@ -54,12 +54,20 @@ class Atom(Draggable):
         self.bonding_sites: dict[str, Atom | None] = dict.fromkeys(Atom.BONDING_SITES)
         self.orb_sites: dict[str, int | None] = dict.fromkeys(Atom.BONDING_SITES)
         self.valency = element.valency
-        item_id = self.canvas.create_oval(
+
+        self.texture = tk.PhotoImage(file = f"assets\\textures\\texture_{self.element.name}.png")
+
+        item_id = self.canvas.create_image(center.x, center.y, image=self.texture, tags=(tag, "atom"))
+
+        """
+            item_id = self.canvas.create_oval(
             center.x - radius, center.y - radius,
             center.x + radius, center.y + radius,
             fill=element.color,
             tags=(tag, "atom"),
-        )
+            )
+        """
+        
         label_font = TkFont(size=radius)
         self.canvas.create_text(
             center.x,
@@ -83,6 +91,8 @@ class Atom(Draggable):
         super().on_click(event)
         self.molecule.dragging = True
         self.canvas.tag_raise(self.tag)
+
+        self.game.mixer.Sound(file="assets\\audio\sfx\sfx_atom_click.ogg").play()
     
     def update_orb(self, site: str, show: bool):
         orb_id = self.orb_sites.get(site)
@@ -234,6 +244,8 @@ class Atom(Draggable):
             self.attempt_bond()
         else:
             self.molecule.on_release_outside_lab()
+
+        self.game.mixer.Sound(file="assets\\audio\sfx\sfx_atom_release.ogg").play()
 
     def on_exit_window(self) -> None:
         self.molecule.on_atom_exit_window()
