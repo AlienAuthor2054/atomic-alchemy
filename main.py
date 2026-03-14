@@ -4,9 +4,9 @@ from tkinter.font import Font as TkFont
 
 from constants import WINDOW_X, WINDOW_Y
 from core import Game, Scene
-from ui import Menu, GameOver, TestScene
+from ui import Menu, GameOver, TestScene, Opening
 
-GAME_TIMER = 10
+GAME_TIMER = 180
 
 class App(tk.Tk):
     def __init__(self) -> None:
@@ -16,11 +16,16 @@ class App(tk.Tk):
         self.resizable(width=False, height=False)
         self.active_scene: Scene | None = None
 
+        self.opening = Opening(self)
         self.menu = Menu(self)
-        self.switch_scene(self.menu)
+
+        self.bind("<<OpeningSkip>>", self.on_open_finish)
         self.bind("<<MenuStart>>", self.game_start)
+
         self.bind("<<EndRetry>>", self.game_start)
         self.bind("<<EndMenu>>", self.on_return)
+
+        self.switch_scene(self.opening)
     
     def game_start(self, event) -> None:
         self.game = Game(self)
@@ -36,6 +41,9 @@ class App(tk.Tk):
         self.end.update_points()
         self.switch_scene(self.end)
 
+    def on_open_finish(self, *args):
+        self.switch_scene(self.menu)
+
     def switch_scene(self, scene: Scene) -> None:
         if self.active_scene is not None:
             self.active_scene.unload()
@@ -43,7 +51,9 @@ class App(tk.Tk):
         self.active_scene = scene
 
     def pressed_esc(self, event):
-        if self.active_scene == self.menu:
+        if self.active_scene == self.opening:
+            self.on_open_finish()
+        elif self.active_scene == self.menu:
             if self.menu.options.is_open:
                 self.menu.options.close()
         elif self.active_scene == self.game:
