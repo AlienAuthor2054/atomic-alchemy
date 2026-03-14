@@ -121,7 +121,8 @@ class GameOver(Scene):
             fg=self.btn_FG,
             activebackground=self.btn_ACTIVE_BG,
             activeforeground="white",
-            relief="flat"
+            relief="flat",
+            command=self.game_retry
         )
         self.button_end_retry.pack(pady=5)
 
@@ -134,7 +135,8 @@ class GameOver(Scene):
             fg="white",
             activebackground="#D94C4C", 
             activeforeground="white", 
-            relief="flat"
+            relief="flat",
+            command=self.return_to_menu
         )
         self.button_end_menu.pack(pady=5)
 
@@ -162,6 +164,12 @@ class GameOver(Scene):
         self.button_end_lb.pack(expand=True, pady=5)
 
         self.add_widget(self.frame_root, 0.5, 0.5, "center")
+
+    def game_retry(self):
+        self.root.event_generate("<<EndRetry>>")
+
+    def return_to_menu(self):
+        self.root.event_generate("<<EndMenu>>")
 
     def update_points(self):
         points = self.game.points_var.get()
