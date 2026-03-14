@@ -28,6 +28,7 @@ class Game(Scene):
         self.points_var = tk.IntVar()
 
         self.game_started = False
+        self.game_paused = False
 
         self.time_var = tk.StringVar()
         self.time_started = int(time())
@@ -97,10 +98,26 @@ class Game(Scene):
 
         if self.loop_atom:
             self.root.after_cancel(self.loop_atom)
-            self.loop_atom
+            self.loop_atom = None
+
+    def pause(self):
+        self.game_paused = True
+        self.mixer.music.pause()
+
+        self.mixer.Sound(file="assets\\audio\sfx\sfx_game_pause.ogg").play()
+
+    def unpause(self):
+        self.game_paused = False
+        self.mixer.music.unpause()
+
+        self.mixer.Sound(file="assets\\audio\sfx\sfx_game_unpause.ogg").play()
+
+        self.prev_time = perf_counter()
+
+        self.root.after(0, self.loop)
 
     def loop(self):
-        if self.game_started:
+        if self.game_started and not self.game_paused:
             delta = perf_counter() - self.prev_time
             self.tick(delta)
             self.prev_time = perf_counter()

@@ -28,6 +28,9 @@ class Draggable(ABC):
         game.physics_objects.add(self)
     
     def on_click(self, event):
+        if self.game.game_paused:
+            return
+
         self.dragging = True
         self.drag_pos = self.pos
         self.last_mouse_pos = Point(event.x, event.y)
@@ -36,8 +39,9 @@ class Draggable(ABC):
         self.dragging = False
     
     def on_drag(self, event) -> Point:
-        if not self.dragging:
+        if self.game.game_paused or not self.dragging:
             return Point(0, 0)
+        
         mouse_pos = Point(event.x, event.y)
         mouse_offset = mouse_pos - self.last_mouse_pos
         self.drag_pos += mouse_offset

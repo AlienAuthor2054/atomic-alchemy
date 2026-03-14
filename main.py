@@ -14,9 +14,9 @@ class App(tk.Tk):
         self.resizable(width=False, height=False)
         self.active_scene: Scene | None = None
 
-        menu = Menu(self)
+        self.menu = Menu(self)
         self.game = Game(self)
-        self.switch_scene(menu)
+        self.switch_scene(self.menu)
         self.bind("<<MenuStart>>", self.on_start_btn_pressed)
     
     def on_start_btn_pressed(self, event) -> None:
@@ -33,8 +33,20 @@ class App(tk.Tk):
         scene.load()
         self.active_scene = scene
 
+    def esc_pressed(self, event):
+        if self.active_scene == self.menu:
+            print("Menu")
+        elif self.active_scene == self.game:
+            if self.game.game_paused:
+                self.game.unpause()
+            else:
+                self.game.pause()
+        else:
+            print(self.active_scene)
+
 def main():
     root = App()
+    root.bind('<Escape>', root.esc_pressed)
     root.mainloop()
 
 if __name__ == "__main__":
