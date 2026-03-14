@@ -4,7 +4,7 @@ from tkinter.font import Font as TkFont
 
 from constants import WINDOW_X, WINDOW_Y
 from core import Game, Scene
-from ui import Menu, GameOver
+from ui import Menu, GameOver, TestScene
 
 GAME_TIMER = 10
 
@@ -42,7 +42,7 @@ class App(tk.Tk):
         scene.load()
         self.active_scene = scene
 
-    def esc_pressed(self, event):
+    def pressed_esc(self, event):
         if self.active_scene == self.menu:
             if self.menu.options.is_open:
                 self.menu.options.close()
@@ -56,7 +56,7 @@ class App(tk.Tk):
 
 def main():
     root = App()
-    root.bind('<Escape>', root.esc_pressed)
+    root.bind('<Escape>', root.pressed_esc)
     root.mainloop()
 
 if __name__ == "__main__":
