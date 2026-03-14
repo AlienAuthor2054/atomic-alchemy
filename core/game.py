@@ -119,6 +119,19 @@ class Game(Scene):
 
         self.root.after(0, self.loop)
 
+    def stop(self):
+        self.game_started = False
+
+        self.mixer.music.fadeout(1000)
+
+        if self.loop_game:
+            self.root.after_cancel(self.loop_game)
+            self.loop_game = None
+
+        if self.loop_atom:
+            self.root.after_cancel(self.loop_atom)
+            self.loop_atom
+
     def loop(self):
         if self.game_started and not self.game_paused:
             delta = perf_counter() - self.prev_time
