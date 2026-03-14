@@ -19,10 +19,10 @@ class Scene():
         anchor: Literal['nw', 'n', 'ne', 'w', 'center', 'e', 'sw', 's', 'se']
     ) -> None:
         """
-        Embeds a `widget` onto the game canvas.
+        Embeds a `widget` onto the scene canvas.
 
-        Only use for adding gameplay UI,
-        not out-of-game UI like title screen, game over screen, etc.
+        Previously reserved for gameplay UI, its anchor-based placement system 
+        was found useful for positioning UI elements in general.
 
         `norm_x` and `norm_y` are values from 0 to 1
         describing the widget's position relative to the window.
