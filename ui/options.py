@@ -36,7 +36,7 @@ class Options(Window):
         # MUSIC VOLUME
 
         self.frame_opt_volume_music = tk.Frame(self.frame_opt)
-        self.frame_opt_volume_music.pack()
+        self.frame_opt_volume_music.pack(fill="both", padx=5)
 
         self.frame_opt_volume_music_title = tk.Frame(self.frame_opt_volume_music)
         self.frame_opt_volume_music_title.pack(fill="both")
@@ -45,18 +45,18 @@ class Options(Window):
         self.label_opt_volume_music_title.pack(side="left")
 
         self.frame_opt_volume_music_slider = tk.Frame(self.frame_opt_volume_music)
-        self.frame_opt_volume_music_slider.pack()
+        self.frame_opt_volume_music_slider.pack(fill="x", expand=True, side="left")
 
         self.label_opt_volume_music = tk.Label(self.frame_opt_volume_music_slider, text="0")
         self.label_opt_volume_music.pack(side="left", padx=10)
         
         self.slider_opt_volume_music = tk.Scale(self.frame_opt_volume_music_slider, from_=0, to=100, orient="horizontal", showvalue=0, variable=self.value_vol_music)
-        self.slider_opt_volume_music.pack(side="left")
+        self.slider_opt_volume_music.pack(fill="x", expand=True, side="left")
 
         # SFX VOLUME
 
         self.frame_opt_volume_sfx = tk.Frame(self.frame_opt)
-        self.frame_opt_volume_sfx.pack()
+        self.frame_opt_volume_sfx.pack(fill="both", padx=5)
 
         self.frame_opt_volume_sfx_title = tk.Frame(self.frame_opt_volume_sfx)
         self.frame_opt_volume_sfx_title.pack(fill="both")
@@ -65,13 +65,13 @@ class Options(Window):
         self.label_opt_volume_sfx_title.pack(side="left")
 
         self.frame_opt_volume_sfx_slider = tk.Frame(self.frame_opt_volume_sfx)
-        self.frame_opt_volume_sfx_slider.pack()
+        self.frame_opt_volume_sfx_slider.pack(fill="x", expand=True, side="left")
 
         self.label_opt_volume_sfx = tk.Label(self.frame_opt_volume_sfx_slider, text="0")
         self.label_opt_volume_sfx.pack(side="left", padx=10)
         
         self.slider_opt_volume_sfx = tk.Scale(self.frame_opt_volume_sfx_slider, from_=0, to=100, orient="horizontal", showvalue=0, variable=self.value_vol_sfx)
-        self.slider_opt_volume_sfx.pack(side="left")
+        self.slider_opt_volume_sfx.pack(fill="x", expand=True, side="left")
 
         self.update_music_label()
         self.update_sfx_label()
@@ -90,8 +90,8 @@ class Options(Window):
         self.slider_opt_volume_music.set(volume_music)
         self.slider_opt_volume_sfx.set(volume_sfx)
 
-    def close(self, event):
-        super().close(event)
+    def close(self, *args):
+        super().close(*args)
 
         with open(file="data\options.csv", mode="w", newline="") as file:
             writer = csv.writer(file)
