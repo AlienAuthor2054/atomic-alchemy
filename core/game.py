@@ -30,6 +30,9 @@ class Game(Scene):
         self.game_started = False
         self.game_paused = False
 
+        self.loop_game = None
+        self.loop_atom = None
+
         self.time_var = tk.StringVar()
         self.time_started = int(time())
         self._time_finished = False

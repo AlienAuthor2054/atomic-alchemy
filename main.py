@@ -4,7 +4,9 @@ from tkinter.font import Font as TkFont
 
 from constants import WINDOW_X, WINDOW_Y
 from core import Game, Scene
-from ui import Menu
+from ui import Menu, GameOver
+
+GAME_TIMER = 10
 
 class App(tk.Tk):
     def __init__(self) -> None:
@@ -15,17 +17,24 @@ class App(tk.Tk):
         self.active_scene: Scene | None = None
 
         self.menu = Menu(self)
-        self.game = Game(self)
         self.switch_scene(self.menu)
-        self.bind("<<MenuStart>>", self.on_start_btn_pressed)
+        self.bind("<<MenuStart>>", self.game_start)
+        self.bind("<<EndRetry>>", self.game_start)
+        self.bind("<<EndMenu>>", self.on_return)
     
-    def on_start_btn_pressed(self, event) -> None:
+    def game_start(self, event) -> None:
+        self.game = Game(self)
+        self.end = GameOver(self, self.game)
+
         self.switch_scene(self.game)
-        self.game.start(180, self.on_game_over)
-    
+        self.game.start(GAME_TIMER, self.on_game_over)
+
+    def on_return(self, event) -> None:
+        self.switch_scene(self.menu)
+
     def on_game_over(self) -> None:
-        # switch to game over scene here
-        pass
+        self.end.update_points()
+        self.switch_scene(self.end)
 
     def switch_scene(self, scene: Scene) -> None:
         if self.active_scene is not None:
@@ -35,7 +44,8 @@ class App(tk.Tk):
 
     def esc_pressed(self, event):
         if self.active_scene == self.menu:
-            print("Menu")
+            if self.menu.options.is_open:
+                self.menu.options.close()
         elif self.active_scene == self.game:
             if self.game.game_paused:
                 self.game.unpause()

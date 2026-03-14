@@ -1,5 +1,5 @@
 from core.scene import Scene
-from constants import WINDOW_X, WINDOW_Y\
+from constants import WINDOW_X, WINDOW_Y
 
 from ui.options import Options
 
