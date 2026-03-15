@@ -88,7 +88,11 @@ class App(tk.Tk):
 
 def main():
     root = App()
+
     root.bind('<Escape>', root.pressed_esc)
+    root.bind_class('Button', '<ButtonPress-1>', lambda e: AudioManager.play_sfx("button_click"), add='+')
+    root.bind_class('Button', '<ButtonRelease-1>', lambda e: AudioManager.play_sfx("button_release"), add='+')
+
     root.mainloop()
 
 if __name__ == "__main__":

@@ -114,6 +114,14 @@ class Game(Scene):
         AudioManager.pause_bgm()
         AudioManager.play_sfx("game_pause")
 
+        if self.loop_game:
+            self.root.after_cancel(self.loop_game)
+            self.loop_game = None
+
+        if self.loop_atom:
+            self.root.after_cancel(self.loop_atom)
+            self.loop_atom = None
+
     def unpause(self):
         self.game_paused = False
 
@@ -124,10 +132,9 @@ class Game(Scene):
         AudioManager.play_sfx("game_unpause")
 
         self.prev_time = perf_counter()
-
-        self.atom_spawn_loop()
-
-        self.root.after(0, self.loop)
+        
+        self.loop_atom = self.root.after(2000, self.atom_spawn_loop)
+        self.loop_game = self.root.after(0, self.loop)
 
     def loop(self):
         if self.game_started and not self.game_paused:
