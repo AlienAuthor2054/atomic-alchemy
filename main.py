@@ -28,6 +28,8 @@ class App(tk.Tk):
 
         self.opening = Opening(self)
         self.menu = Menu(self)
+        self.game = None
+        self.leaderboard = None
 
         self.bind("<<OpeningSkip>>", self.on_open_finish)
         self.bind("<<MenuStart>>", self.game_start)
