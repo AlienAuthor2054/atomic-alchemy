@@ -1,4 +1,6 @@
 from core.scene import Scene
+from core.audio import AudioManager
+
 from constants import WINDOW_X, WINDOW_Y
 
 from ui.options import Options
@@ -45,3 +47,13 @@ class Menu(Scene):
 
     def start(self):
         self.root.event_generate("<<MenuStart>>")
+
+    def load(self):
+        super().load()
+
+        AudioManager.play_bgm("assets/audio/song/song_menu.ogg")
+
+    def unload(self):
+        super().unload()
+
+        AudioManager.stop_bgm()

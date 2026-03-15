@@ -3,8 +3,8 @@ import tkinter as tk
 from tkinter.font import Font as TkFont
 
 from constants import WINDOW_X, WINDOW_Y
-from core import Game, Scene
-from ui import Menu, GameOver, TestScene, Opening
+from core import Game, Scene, Database, AudioManager
+from ui import Menu, GameOver, TestScene, Opening, Leaderboard
 
 GAME_TIMER = 180
 
@@ -16,14 +16,28 @@ class App(tk.Tk):
         self.resizable(width=False, height=False)
         self.active_scene: Scene | None = None
 
+        db = Database()
+        self.audio = AudioManager()
+        self.audio.init_audio()
+
+        options = db.get_options()
+
+        AudioManager.set_bgm_volume(options["volume_music"] / 100.0)
+        AudioManager.set_sfx_volume(options["volume_sfx"] / 100.0)
+
         self.opening = Opening(self)
         self.menu = Menu(self)
+        self.leaderboard = Leaderboard(self)
 
         self.bind("<<OpeningSkip>>", self.on_open_finish)
         self.bind("<<MenuStart>>", self.game_start)
 
+        self.bind("<<LeaderboardOpen>>", self.view_leaderboard)
+
         self.bind("<<EndRetry>>", self.game_start)
         self.bind("<<EndMenu>>", self.on_return)
+
+        self.test = TestScene(self)
 
         self.switch_scene(self.opening)
     
@@ -50,6 +64,9 @@ class App(tk.Tk):
         scene.load()
         self.active_scene = scene
 
+    def view_leaderboard(self, *args):
+        self.switch_scene(self.leaderboard)
+
     def pressed_esc(self, event):
         if self.active_scene == self.opening:
             self.on_open_finish()
@@ -59,8 +76,13 @@ class App(tk.Tk):
         elif self.active_scene == self.game:
             if self.game.game_paused:
                 self.game.unpause()
+                if self.game.options.is_open:
+                    self.game.options.close()
             else:
                 self.game.pause()
+                self.game.options.open()
+        elif self.active_scene == self.leaderboard:
+            self.switch_scene(self.menu)
         else:
             print(self.active_scene)
 
