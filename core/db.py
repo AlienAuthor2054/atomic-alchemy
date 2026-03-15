@@ -1,9 +1,13 @@
 import json
+import os
 
 class Database():
     def __init__(self):
         self.options_path = "data/options.json"
         self.lb_path = "data/leaderboard.json"
+
+        if not os.path.isdir('data'):
+            os.mkdir('data')
 
     def get_options(self):
         try:
