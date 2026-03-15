@@ -198,3 +198,7 @@ class Leaderboard(Scene):
             anchor="e"
         )
         dt_lbl.pack(side="right", padx=10)
+
+    def unload(self):
+        if self.canvas:
+            self.canvas.destroy()
