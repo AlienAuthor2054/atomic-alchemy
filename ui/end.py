@@ -42,14 +42,14 @@ class GameOver(Scene):
         self.frame_end.pack(expand=True)
 
         ## GAME OVER
-        self.label_end_tltle = tk.Label(self.frame_end)
-        self.label_end_tltle.config(
+        self.label_end_title = tk.Label(self.frame_end)
+        self.label_end_title.config(
             text="GAME OVER",
             font=font_title,
             bg=BG_COLOR_1,
             fg=TEXT_TITLE,
         )
-        self.label_end_tltle.pack()
+        self.label_end_title.pack()
 
         ## POINTS
         self.label_points = tk.Label(self.frame_end)
