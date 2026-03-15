@@ -9,7 +9,7 @@ from constants import WINDOW_X, WINDOW_Y, ATOM_SPAWN_WEIGHTS
 from core.element import ELEMENTS_BY_NUM
 from util.point import Point
 
-from ui import PointsFrame, GameTimer
+from ui import GameDisplay
 from .scene import Scene
 from .atom import Atom
 from .lab import Lab
@@ -71,11 +71,12 @@ class Game(Scene):
         spawn_button = tk.Button(self.canvas, text="Spawn Atom", command=self.spawn_atom)
         self.add_widget(spawn_button, 0, 0, 'nw')
 
-        points_frame = PointsFrame(self.canvas, self.points_var)
-        self.add_widget(points_frame, 0.5, 1, 's')
-
-        timer_frame = GameTimer(self.canvas, self.time_var, 1, 0.05, 'ne')
-        #self.add_widget(points_frame, 1, 0.05, 'ne')
+        points_frame = GameDisplay(self.canvas, self.points_var,
+            "assets\\textures\\texture_Points.png", 0, 0.02, 'nw'
+        )
+        timer_frame = GameDisplay(self.canvas, self.time_var,
+            "assets\\textures\\texture_Timer.png", 1, 0.02, 'ne'
+        )
 
         conveyor_id = self.canvas.create_rectangle(
             0, Game.CONVEYOR_Y, WINDOW_X, Game.LAB_Y,
