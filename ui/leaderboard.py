@@ -1,5 +1,6 @@
 from core.scene import Scene
 from core.db import Database
+from core.audio import AudioManager
 
 from constants import WINDOW_X, WINDOW_Y
 from style import *
@@ -32,7 +33,7 @@ class Leaderboard(Scene):
         self.label_title = tk.Label(self.frame_lb)
         self.label_title.config(
             text="LEADERBOARD",
-            font=font_title,
+            font=font_medium,
             bg=BG_COLOR_1,
             fg=TEXT_TITLE
         )
@@ -73,6 +74,11 @@ class Leaderboard(Scene):
     def create_podium_spot(self, rank: int, data: dict = None):
         name = data["name"] if data and data.get("name") else "---"
         points = f"{data['points']} POINTS" if data else "---"
+        timestamp_unix = data["timestamp"] if data else "---"
+        timestamp = "---"
+
+        if timestamp_unix != "---":
+            timestamp = datetime.fromtimestamp(timestamp_unix).strftime('%Y-%m-%d %H:%M')
 
         frame = tk.Frame(self.frame_podiums)
         frame.config(
@@ -95,7 +101,7 @@ class Leaderboard(Scene):
         label_name = tk.Label(frame_labels)
         label_name.config(
             text=name,
-            font=font_normal,
+            font=font_button_large,
             bg=BG_COLOR_1
         )
         label_name.pack()
@@ -103,10 +109,18 @@ class Leaderboard(Scene):
         label_points = tk.Label(frame_labels)
         label_points.config(
             text=points,
-            font=font_normal,
+            font=font_normal_normal,
             bg=BG_COLOR_1
         )
         label_points.pack()
+
+        label_time = tk.Label(frame_labels)
+        label_time.config(
+            text=timestamp,
+            font=font_normal_normal,
+            bg=BG_COLOR_1
+        )
+        label_time.pack()
 
         block = tk.Frame(frame_podium)
         block.config(
@@ -199,6 +213,13 @@ class Leaderboard(Scene):
         )
         dt_lbl.pack(side="right", padx=10)
 
+    def load(self):
+        super().load()
+
+        AudioManager.play_bgm("assets/audio/song/song_leaderboard.ogg")
+
     def unload(self):
+        AudioManager.stop_bgm()
+
         if self.canvas:
             self.canvas.destroy()

@@ -6,7 +6,7 @@ from constants import WINDOW_X, WINDOW_Y
 from core import Game, Scene, Database, AudioManager
 from ui import Menu, GameOver, TestScene, Opening, Leaderboard
 
-GAME_TIMER = 180
+GAME_TIMER = 10
 
 class App(tk.Tk):
     def __init__(self) -> None:
@@ -14,6 +14,7 @@ class App(tk.Tk):
         self.title("Atomic Alchemy")
         self.geometry(f"{WINDOW_X}x{WINDOW_Y}")
         self.resizable(width=False, height=False)
+        self.iconbitmap("assets/textures/texture_game.ico")
         self.active_scene: Scene | None = None
 
         db = Database()
@@ -73,6 +74,8 @@ class App(tk.Tk):
         elif self.active_scene == self.menu:
             if self.menu.options.is_open:
                 self.menu.options.close()
+        elif self.active_scene == self.leaderboard:
+            self.switch_scene(self.menu)
         elif self.active_scene == self.game:
             if self.game.game_paused:
                 self.game.unpause()
@@ -81,8 +84,6 @@ class App(tk.Tk):
             else:
                 self.game.pause()
                 self.game.options.open()
-        elif self.active_scene == self.leaderboard:
-            self.switch_scene(self.menu)
         else:
             print(self.active_scene)
 
