@@ -27,7 +27,6 @@ class App(tk.Tk):
 
         self.opening = Opening(self)
         self.menu = Menu(self)
-        self.leaderboard = Leaderboard(self)
 
         self.bind("<<OpeningSkip>>", self.on_open_finish)
         self.bind("<<MenuStart>>", self.game_start)
@@ -65,6 +64,7 @@ class App(tk.Tk):
         self.active_scene = scene
 
     def view_leaderboard(self, *args):
+        self.leaderboard = Leaderboard(self)
         self.switch_scene(self.leaderboard)
 
     def pressed_esc(self, event):
