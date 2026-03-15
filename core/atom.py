@@ -4,7 +4,6 @@ import tkinter as tk
 from collections import deque
 from tkinter.font import Font as TkFont
 from typing import TYPE_CHECKING
-from random import randrange
 
 from util.point import Point
 from constants import WINDOW_Y, BOND_LENGTH
@@ -47,7 +46,7 @@ class Atom(Draggable):
         radius = 30
         self.radius = radius
         pad = radius
-        center = Point(-pad, randrange(pad, WINDOW_Y - pad))
+        center = Point(-pad, game.SPAWN_Y)
         pos = Point(center.x - radius, center.y - radius)
         super().__init__(game, tag, pos)
         self.element = element
@@ -245,8 +244,7 @@ class Atom(Draggable):
     def on_release(self, event):
         super().on_release(event)
         self.molecule.dragging = False
-        x1, y1, x2, y2 = self.canvas.bbox("lab")
-        if x1 < event.x < x2 and y1 < event.y < y2:
+        if event.y > self.game.LAB_Y:
             self.molecule.on_release_in_lab()
             self.attempt_bond()
         else:

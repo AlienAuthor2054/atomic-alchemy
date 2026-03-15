@@ -16,7 +16,7 @@ class Molecule():
         self.atoms = atoms
         self.dragging = False
         self.in_lab = False
-        self.vel = Point(randrange(75, 200), 0)
+        self.vel = Point(100, 0)
         game.physics_objects.add(self)
     
     @staticmethod

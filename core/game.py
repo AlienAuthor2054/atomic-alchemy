@@ -9,7 +9,7 @@ from constants import WINDOW_X, WINDOW_Y, ATOM_SPAWN_WEIGHTS
 from core.element import ELEMENTS_BY_NUM
 from util.point import Point
 
-from ui import PointsFrame, GameTimer, Options
+from ui import GameDisplay, Options
 from .scene import Scene
 from .atom import Atom
 from .lab import Lab
@@ -21,8 +21,13 @@ if TYPE_CHECKING:
     from .bond import Bond
 
 class Game(Scene):
+    CONVEYOR_Y = 95
+    SPAWN_Y = 130
+    LAB_Y = 165
+    BG_COLOR = "#FFF6E7"
+
     def __init__(self, root: tk.Tk) -> None:
-        super().__init__(root)
+        super().__init__(root, Game.BG_COLOR)
         self.prev_time: float = 0.0
         self.physics_objects = set()
         self._atoms_by_item_id: dict[int, Atom] = {} # For atom collision detection
@@ -71,11 +76,19 @@ class Game(Scene):
         spawn_button = tk.Button(self.canvas, text="Spawn Atom", command=self.spawn_atom)
         self.add_widget(spawn_button, 0, 0, 'nw')
 
-        points_frame = PointsFrame(self.canvas, self.points_var)
-        self.add_widget(points_frame, 0.5, 1, 's')
+        points_frame = GameDisplay(self.canvas, self.points_var,
+            "assets\\textures\\texture_Points.png", 0, 0.02, 'nw'
+        )
+        timer_frame = GameDisplay(self.canvas, self.time_var,
+            "assets\\textures\\texture_Timer.png", 1, 0.02, 'ne'
+        )
 
-        timer_frame = GameTimer(self.canvas, self.time_var, 1, 0.05, 'ne')
-        #self.add_widget(points_frame, 1, 0.05, 'ne')
+        conveyor_id = self.canvas.create_rectangle(
+            0, Game.CONVEYOR_Y, WINDOW_X, Game.LAB_Y,
+            fill="#318080",
+            outline="",
+        )
+        self.canvas.lower(conveyor_id)
 
     def start(self, timer: int = 180, on_end: Callable[[], None] | None = None):
         self.game_started = True

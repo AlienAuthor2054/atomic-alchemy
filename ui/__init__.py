@@ -1,5 +1,4 @@
-from .points import PointsFrame
-from .game_timer import GameTimer
+from .game_display import GameDisplay
 from .menu import Menu
 from .options import Options
 from .end import GameOver

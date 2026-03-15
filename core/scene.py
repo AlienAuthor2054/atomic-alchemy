@@ -4,10 +4,10 @@ from constants import WINDOW_X, WINDOW_Y
 from typing import Literal
 
 class Scene():
-    def __init__(self, root: tk.Tk):
+    def __init__(self, root: tk.Tk, bg: str | None = None):
         self.root = root
 
-        self.canvas = tk.Canvas(root, width=WINDOW_X, height=WINDOW_Y)
+        self.canvas = tk.Canvas(root, width=WINDOW_X, height=WINDOW_Y, bg="#FFF6E7")
 
     def add_widget(self, widget: tk.Widget, norm_x: float, norm_y: float,
         anchor: Literal['nw', 'n', 'ne', 'w', 'center', 'e', 'sw', 's', 'se']
