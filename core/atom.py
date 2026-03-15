@@ -12,6 +12,8 @@ from constants import WINDOW_Y, BOND_LENGTH
 from .bond import Bond
 from .draggable import Draggable
 from .molecule import Molecule
+from .audio import AudioManager
+
 if TYPE_CHECKING:
     from .element import Element
     from .game import Game
@@ -53,11 +55,11 @@ class Atom(Draggable):
         self.bonds: dict[Atom, Bond] = {}
         self.bonding_sites: dict[str, Atom | None] = dict.fromkeys(Atom.BONDING_SITES)
         self.orb_sites: dict[str, int | None] = dict.fromkeys(Atom.BONDING_SITES)
+        self.orb_textures: dict[str, tk.PhotoImage] = {} # Add this line to hold image references!
         self.valency = element.valency
 
-        self.texture = tk.PhotoImage(file = f"assets\\textures\\texture_{self.element.name}.png")
-
-        item_id = self.canvas.create_image(center.x, center.y, image=self.texture, tags=(tag, "atom"))
+        self.texture_atom = tk.PhotoImage(file = f"assets/textures/texture_{self.element.name}.png")
+        item_id = self.canvas.create_image(center.x, center.y, image=self.texture_atom, tags=(tag, "atom"))
 
         """
             item_id = self.canvas.create_oval(
@@ -92,7 +94,7 @@ class Atom(Draggable):
         self.molecule.dragging = True
         self.canvas.tag_raise(self.tag)
 
-        self.game.mixer.Sound(file="assets\\audio\sfx\sfx_atom_click.ogg").play()
+        AudioManager.play_sfx("atom_click")
     
     def update_orb(self, site: str, show: bool):
         orb_id = self.orb_sites.get(site)
@@ -100,14 +102,19 @@ class Atom(Draggable):
         if orb_id is None:
             if not show:
                 return
-            orb_id = self.canvas.create_oval(
-                orb_pos.x - Atom.ORB_RADIUS, orb_pos.y - Atom.ORB_RADIUS,
-                orb_pos.x + Atom.ORB_RADIUS, orb_pos.y + Atom.ORB_RADIUS,
-                fill="yellow",
-                tags=(self.tag, "atom"),
+            
+            if site not in self.orb_textures:
+                self.orb_textures[site] = tk.PhotoImage(file="assets/textures/texture_orb.png")
+            
+            orb_id = self.canvas.create_image(
+                orb_pos.x, orb_pos.y, 
+                image=self.orb_textures[site], 
+                tags=(self.tag, "atom")
             )
+            
             if not self.molecule.in_lab:
                 self.canvas.tag_lower(orb_id, "lab")
+                
             self.orb_sites[site] = orb_id
         self.canvas.itemconfig(orb_id, state="normal" if show else "hidden")
 
@@ -245,7 +252,7 @@ class Atom(Draggable):
         else:
             self.molecule.on_release_outside_lab()
 
-        self.game.mixer.Sound(file="assets\\audio\sfx\sfx_atom_release.ogg").play()
+        AudioManager.play_sfx("atom_release")
 
     def on_exit_window(self) -> None:
         self.molecule.on_atom_exit_window()
