@@ -6,10 +6,10 @@ from typing import Literal
 from pygame import mixer
 
 class Scene():
-    def __init__(self, root: tk.Tk):
+    def __init__(self, root: tk.Tk, bg: str | None = None):
         self.root = root
 
-        self.canvas = tk.Canvas(root, width=WINDOW_X, height=WINDOW_Y)
+        self.canvas = tk.Canvas(root, width=WINDOW_X, height=WINDOW_Y, bg="#FFF6E7")
 
         self.mixer = mixer
         self.mixer.pre_init(44100, -16, 2, 512)

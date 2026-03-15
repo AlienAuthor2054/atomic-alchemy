@@ -237,8 +237,7 @@ class Atom(Draggable):
     def on_release(self, event):
         super().on_release(event)
         self.molecule.dragging = False
-        x1, y1, x2, y2 = self.canvas.bbox("lab")
-        if x1 < event.x < x2 and y1 < event.y < y2:
+        if event.y > self.game.LAB_Y:
             self.molecule.on_release_in_lab()
             self.attempt_bond()
         else:

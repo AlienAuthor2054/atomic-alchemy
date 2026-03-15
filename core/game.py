@@ -18,10 +18,13 @@ if TYPE_CHECKING:
     from .bond import Bond
 
 class Game(Scene):
-    SPAWN_Y = 115
+    CONVEYOR_Y = 95
+    SPAWN_Y = 130
+    LAB_Y = 165
+    BG_COLOR = "#FFF6E7"
 
     def __init__(self, root: tk.Tk) -> None:
-        super().__init__(root)
+        super().__init__(root, Game.BG_COLOR)
         self.prev_time: float = 0.0
         self.physics_objects = set()
         self._atoms_by_item_id: dict[int, Atom] = {} # For atom collision detection
@@ -75,7 +78,7 @@ class Game(Scene):
         #self.add_widget(points_frame, 1, 0.05, 'ne')
 
         conveyor_id = self.canvas.create_rectangle(
-            0, 80, WINDOW_X, Game.LAB_Y,
+            0, Game.CONVEYOR_Y, WINDOW_X, Game.LAB_Y,
             fill="#318080",
             outline="",
         )
