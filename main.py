@@ -6,7 +6,7 @@ from constants import WINDOW_X, WINDOW_Y
 from core import Game, Scene, Database, AudioManager
 from ui import Menu, GameOver, TestScene, Opening, Leaderboard
 
-GAME_TIMER = 10
+GAME_TIMER = 180
 
 class App(tk.Tk):
     def __init__(self) -> None:
