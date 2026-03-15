@@ -4,7 +4,6 @@ import tkinter as tk
 from collections import deque
 from tkinter.font import Font as TkFont
 from typing import TYPE_CHECKING
-from random import randrange
 
 from util.point import Point
 from constants import WINDOW_Y, BOND_LENGTH
@@ -45,7 +44,7 @@ class Atom(Draggable):
         radius = 30
         self.radius = radius
         pad = radius
-        center = Point(-pad, randrange(pad, WINDOW_Y - pad))
+        center = Point(-pad, game.SPAWN_Y)
         pos = Point(center.x - radius, center.y - radius)
         super().__init__(game, tag, pos)
         self.element = element

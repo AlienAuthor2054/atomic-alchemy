@@ -18,6 +18,8 @@ if TYPE_CHECKING:
     from .bond import Bond
 
 class Game(Scene):
+    SPAWN_Y = 115
+
     def __init__(self, root: tk.Tk) -> None:
         super().__init__(root)
         self.prev_time: float = 0.0
@@ -71,6 +73,13 @@ class Game(Scene):
 
         timer_frame = GameTimer(self.canvas, self.time_var, 1, 0.05, 'ne')
         #self.add_widget(points_frame, 1, 0.05, 'ne')
+
+        conveyor_id = self.canvas.create_rectangle(
+            0, 80, WINDOW_X, Game.LAB_Y,
+            fill="#318080",
+            outline="",
+        )
+        self.canvas.lower(conveyor_id)
 
     def start(self, timer: int = 180, on_end: Callable[[], None] | None = None):
         self.game_started = True
