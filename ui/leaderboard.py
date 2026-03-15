@@ -71,7 +71,7 @@ class Leaderboard(Scene):
 
         self.add_widget(self.frame_root, 0.5, 0.5, "center")
 
-    def create_podium_spot(self, rank: int, data: dict = None):
+    def create_podium_spot(self, rank: int, data: dict | None = None):
         name = data["name"] if data and data.get("name") else "---"
         points = f"{data['points']} POINTS" if data else "---"
         timestamp_unix = data["timestamp"] if data else "---"
@@ -147,7 +147,7 @@ class Leaderboard(Scene):
                 height=100
             )
 
-    def create_list_row(self, rank: int = 0, data: dict = None):
+    def create_list_row(self, rank: int = 0, data: dict | None = None):
         name = data["name"] if data and data.get("name") else "---"
         points = f"{data['points']} POINTS" if data else "---"
         timestamp_unix = data["timestamp"] if data else "---"
