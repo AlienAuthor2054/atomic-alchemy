@@ -9,11 +9,14 @@ from constants import WINDOW_X, WINDOW_Y, ATOM_SPAWN_WEIGHTS
 from core.element import ELEMENTS_BY_NUM
 from util.point import Point
 
-from ui import PointsFrame, GameTimer
+from ui import PointsFrame, GameTimer, Options
 from .scene import Scene
 from .atom import Atom
 from .lab import Lab
 from .scoring import score_bond_change
+from .db import Database
+from .audio import AudioManager
+
 if TYPE_CHECKING:
     from .bond import Bond
 
@@ -26,6 +29,8 @@ class Game(Scene):
         self.lab = Lab(self)
         self._points = 0
         self.points_var = tk.IntVar()
+
+        self.options = Options(self)
 
         self.game_started = False
         self.game_paused = False
@@ -79,21 +84,19 @@ class Game(Scene):
         self.time_started = int(time())
         self.time_set = timer
         self.on_end = on_end
-
-        self.mixer.music.load(filename='assets\\audio\song\song_sine.ogg')
-        self.mixer.music.set_volume(0.25)
-        self.mixer.music.play(-1)
         
         self.canvas.pack(fill='both')
 
         self.atom_spawn_loop()
+
+        AudioManager.play_dynamic_bgm("assets/audio/song/song_game.ogg", "assets/audio/song/song_end.ogg")
 
         self.root.after(0, self.loop)
 
     def stop(self):
         self.game_started = False
 
-        self.mixer.music.fadeout(1000)
+        AudioManager.set_active_dynamic_track(2)
 
         if self.loop_game:
             self.root.after_cancel(self.loop_game)
@@ -105,17 +108,24 @@ class Game(Scene):
 
     def pause(self):
         self.game_paused = True
-        self.mixer.music.pause()
 
-        self.mixer.Sound(file="assets\\audio\sfx\sfx_game_pause.ogg").play()
+        self.time_paused_at = int(time())
+
+        AudioManager.pause_bgm()
+        AudioManager.play_sfx("game_pause")
 
     def unpause(self):
         self.game_paused = False
-        self.mixer.music.unpause()
 
-        self.mixer.Sound(file="assets\\audio\sfx\sfx_game_unpause.ogg").play()
+        time_spent_paused = int(time()) - self.time_paused_at
+        self.time_started += time_spent_paused
+        
+        AudioManager.unpause_bgm()
+        AudioManager.play_sfx("game_unpause")
 
         self.prev_time = perf_counter()
+
+        self.atom_spawn_loop()
 
         self.root.after(0, self.loop)
 
@@ -148,7 +158,7 @@ class Game(Scene):
         )[0]])
 
     def atom_spawn_loop(self):
-        if self.game_started:
+        if self.game_started and not self.game_paused:
             self.spawn_atom()
             self.loop_atom = self.root.after(2000, lambda: self.atom_spawn_loop())
     

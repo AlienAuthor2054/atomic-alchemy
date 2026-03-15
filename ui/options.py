@@ -2,14 +2,17 @@ from constants import WINDOW_X, WINDOW_Y
 
 from core.scene import Scene
 from core.window import Window
+from core.db import Database
+from core.audio import AudioManager
 
 import tkinter as tk
 from tkinter.font import Font
-import csv
 
 class Options(Window):
     def __init__(self, scene: Scene):
         super().__init__(scene)
+
+        self.db = Database()
 
         h1 = Font(family="Comic Sans MS", size=20)
         h3 = Font(family="Comic Sans MS", size=10)
@@ -19,10 +22,13 @@ class Options(Window):
         self.value_vol_music = tk.IntVar()
         self.value_vol_sfx = tk.IntVar()
 
-        options = self.get_options()
+        options = self.db.get_options()
+        
+        volume_music = options.get("volume_music")
+        volume_sfx = options.get("volume_sfx")
 
-        self.value_vol_music.set(options[0])
-        self.value_vol_sfx.set(options[1])
+        self.value_vol_music.set(volume_music)
+        self.value_vol_sfx.set(volume_sfx)
 
         self.frame_opt = self.window
         self.frame_opt.config(bd=1, relief="solid", width=500, height=250)
@@ -82,10 +88,10 @@ class Options(Window):
     def open(self):
         super().open()
 
-        options = self.get_options()
+        options = self.db.get_options()
 
-        volume_music = options[0]
-        volume_sfx = options[1]
+        volume_music = options.get("volume_music")
+        volume_sfx = options.get("volume_sfx")
 
         self.slider_opt_volume_music.set(volume_music)
         self.slider_opt_volume_sfx.set(volume_sfx)
@@ -93,32 +99,24 @@ class Options(Window):
     def close(self, *args):
         super().close(*args)
 
-        with open(file="data\options.csv", mode="w", newline="") as file:
-            writer = csv.writer(file)
-            writer.writerow([self.value_vol_music.get(), self.value_vol_sfx.get()])
+        data = {
+            "volume_music": self.value_vol_music.get(),
+            "volume_sfx": self.value_vol_sfx.get()
+        }
 
-    def get_options(self):
-        # OPTIONS [VOLUME MUSIC, VOLUME SFX]
-
-        try:
-            with open(file="data\options.csv", mode="r") as file:
-                reader = csv.reader(file)
-                data = []
-                for row in reader:
-                    for column in row:
-                        data.append(column)
-                return data
-
-        except FileNotFoundError as error:
-            with open(file="data\options.csv", mode="w", newline="") as file:
-                writer = csv.writer(file)
-                writer.writerow([50, 50])
-            return self.get_options()
+        self.db.set_options(data)
     
     def update_music_label(self, *args):
         current_volume = self.value_vol_music.get()
         self.label_opt_volume_music.config(text=str(current_volume))
 
+        mixer_volume = current_volume / 100.0
+        AudioManager.set_bgm_volume(mixer_volume)
+        
+
     def update_sfx_label(self, *args):
         current_volume = self.value_vol_sfx.get()
         self.label_opt_volume_sfx.config(text=str(current_volume))
+
+        mixer_volume = current_volume / 100.0
+        AudioManager.set_sfx_volume(mixer_volume)
