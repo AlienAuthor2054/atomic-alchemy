@@ -10,6 +10,7 @@ from core.element import ELEMENTS_BY_NUM
 from util.point import Point
 
 from ui import GameDisplay, Options
+from style import *
 from .scene import Scene
 from .atom import Atom
 from .lab import Lab
@@ -85,7 +86,7 @@ class Game(Scene):
 
         conveyor_id = self.canvas.create_rectangle(
             0, Game.CONVEYOR_Y, WINDOW_X, Game.LAB_Y,
-            fill="#318080",
+            fill=BG_COLOR_2,
             outline="",
         )
         self.canvas.lower(conveyor_id)
