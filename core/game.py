@@ -74,9 +74,6 @@ class Game(Scene):
         self._time_finished = value
 
     def init_ui(self):
-        spawn_button = tk.Button(self.canvas, text="Spawn Atom", command=self.spawn_atom)
-        self.add_widget(spawn_button, 0, 0, 'nw')
-
         points_frame = GameDisplay(self.canvas, self.points_var,
             "assets\\textures\\texture_Points.png", 0, 0.02, 'nw'
         )
